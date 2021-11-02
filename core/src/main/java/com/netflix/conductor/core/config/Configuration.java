@@ -22,8 +22,7 @@ import java.util.Map;
  */
 public interface Configuration {
     String DB_PROPERTY_NAME = "db";
-    //String DB_DEFAULT_VALUE = "memory";
-    String DB_DEFAULT_VALUE = "mysql";
+    String DB_DEFAULT_VALUE = "memory";
 
     String SWEEP_FREQUENCY_PROPERTY_NAME = "decider.sweep.frequency.seconds";
     int SWEEP_FREQUENCY_DEFAULT_VALUE = 30;
