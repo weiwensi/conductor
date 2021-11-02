@@ -18,11 +18,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 import javax.sql.DataSource;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-import static com.mysql.cj.exceptions.MysqlErrorNumbers.ER_LOCK_DEADLOCK;
+//import static com.mysql.cj.exceptions.MysqlErrorNumbers.ER_LOCK_DEADLOCK;
 import static com.netflix.conductor.core.execution.ApplicationException.Code.BACKEND_ERROR;
 import static com.netflix.conductor.core.execution.ApplicationException.Code.CONFLICT;
 import static com.netflix.conductor.core.execution.ApplicationException.Code.INTERNAL_ERROR;
@@ -238,13 +239,13 @@ public abstract class MySQLBaseDAO {
     protected void executeWithTransaction(String query, ExecuteFunction function) {
         withTransaction(tx -> execute(tx, query, function));
     }
-
+private int ORACLE_DEAD_CODE=04020;
     private boolean isDeadLockError(Throwable throwable){
         SQLException sqlException = findCauseSQLException(throwable);
         if (sqlException == null){
             return false;
         }
-        return ER_LOCK_DEADLOCK == sqlException.getErrorCode();
+        return ORACLE_DEAD_CODE == sqlException.getErrorCode();
     }
 
     private SQLException findCauseSQLException(Throwable throwable) {

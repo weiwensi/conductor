@@ -30,10 +30,15 @@
             <artifactId>commons-io</artifactId>
             <version>${revCommonsIo.version}</version>
         </dependency>
-        <dependency>
+        <!--<dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
             <version>${revMySqlConnector.version}</version>
+        </dependency>-->
+        <dependency>
+            <groupId>com.oracle</groupId>
+            <artifactId>ojdbc6</artifactId>
+            <version>11.2.0.3</version>
         </dependency>
 
         <dependency>

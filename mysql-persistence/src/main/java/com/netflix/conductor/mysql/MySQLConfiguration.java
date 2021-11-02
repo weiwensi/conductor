@@ -8,16 +8,17 @@ import java.util.concurrent.TimeUnit;
 public interface MySQLConfiguration extends Configuration {
 
     String JDBC_URL_PROPERTY_NAME = "jdbc.url";
-    String JDBC_URL_DEFAULT_VALUE = "jdbc:mysql://1.117.203.84:3306/conductor";
+   // String JDBC_URL_DEFAULT_VALUE = "jdbc:mysql://1.117.203.84:3306/conductor";
+   String JDBC_URL_DEFAULT_VALUE = "jdbc:oracle:thin:@1.117.203.84:1521:helowin";
+  //  String JDBC_USER_NAME_PROPERTY_NAME = "jdbc.username";
+    String JDBC_USER_NAME_PROPERTY_NAME = "system";
+    String JDBC_USER_NAME_DEFAULT_VALUE = "system";
 
-    String JDBC_USER_NAME_PROPERTY_NAME = "jdbc.username";
-    String JDBC_USER_NAME_DEFAULT_VALUE = "conductor";
-
-    String JDBC_PASSWORD_PROPERTY_NAME = "jdbc.password";
-    String JDBC_PASSWORD_DEFAULT_VALUE = "123456";
+    String JDBC_PASSWORD_PROPERTY_NAME = "system";
+    String JDBC_PASSWORD_DEFAULT_VALUE = "system";
 
     String FLYWAY_ENABLED_PROPERTY_NAME = "flyway.enabled";
-    boolean FLYWAY_ENABLED_DEFAULT_VALUE = true;
+    boolean FLYWAY_ENABLED_DEFAULT_VALUE = false;
 
     String FLYWAY_TABLE_PROPERTY_NAME = "flyway.table";
     String FLYWAY_TABLE_DEFAULT_VALUE = "schema_version";
