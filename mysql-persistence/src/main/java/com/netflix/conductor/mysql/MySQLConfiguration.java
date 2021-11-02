@@ -8,13 +8,13 @@ import java.util.concurrent.TimeUnit;
 public interface MySQLConfiguration extends Configuration {
 
     String JDBC_URL_PROPERTY_NAME = "jdbc.url";
-    String JDBC_URL_DEFAULT_VALUE = "jdbc:mysql://1.117.203.84:3306/conductor";
+    String JDBC_URL_DEFAULT_VALUE = "jdbc:mysql://localhost:3306/conductor";
 
     String JDBC_USER_NAME_PROPERTY_NAME = "jdbc.username";
     String JDBC_USER_NAME_DEFAULT_VALUE = "conductor";
 
     String JDBC_PASSWORD_PROPERTY_NAME = "jdbc.password";
-    String JDBC_PASSWORD_DEFAULT_VALUE = "123456";
+    String JDBC_PASSWORD_DEFAULT_VALUE = "password";
 
     String FLYWAY_ENABLED_PROPERTY_NAME = "flyway.enabled";
     boolean FLYWAY_ENABLED_DEFAULT_VALUE = true;
@@ -24,12 +24,10 @@ public interface MySQLConfiguration extends Configuration {
 
     // The defaults are currently in line with the HikariConfig defaults, which are unfortunately private.
     String CONNECTION_POOL_MAX_SIZE_PROPERTY_NAME = "conductor.mysql.connection.pool.size.max";
-    //int CONNECTION_POOL_MAX_SIZE_DEFAULT_VALUE = -1;
-    int CONNECTION_POOL_MAX_SIZE_DEFAULT_VALUE = 10;
+    int CONNECTION_POOL_MAX_SIZE_DEFAULT_VALUE = -1;
 
     String CONNECTION_POOL_MINIMUM_IDLE_PROPERTY_NAME = "conductor.mysql.connection.pool.idle.min";
-    //int CONNECTION_POOL_MINIMUM_IDLE_DEFAULT_VALUE = -1;
-    int CONNECTION_POOL_MINIMUM_IDLE_DEFAULT_VALUE =10;
+    int CONNECTION_POOL_MINIMUM_IDLE_DEFAULT_VALUE = -1;
 
     String CONNECTION_MAX_LIFETIME_PROPERTY_NAME = "conductor.mysql.connection.lifetime.max";
     long CONNECTION_MAX_LIFETIME_DEFAULT_VALUE = TimeUnit.MINUTES.toMillis(30);
