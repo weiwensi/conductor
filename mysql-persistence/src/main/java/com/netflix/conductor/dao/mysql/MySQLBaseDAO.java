@@ -239,7 +239,8 @@ public abstract class MySQLBaseDAO {
     protected void executeWithTransaction(String query, ExecuteFunction function) {
         withTransaction(tx -> execute(tx, query, function));
     }
-private int ORACLE_DEAD_CODE=04020;
+    private int ORACLE_DEAD_CODE=04020;
+
     private boolean isDeadLockError(Throwable throwable){
         SQLException sqlException = findCauseSQLException(throwable);
         if (sqlException == null){

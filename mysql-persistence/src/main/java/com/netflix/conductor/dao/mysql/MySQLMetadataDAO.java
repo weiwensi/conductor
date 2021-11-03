@@ -248,7 +248,7 @@ public class MySQLMetadataDAO extends MySQLBaseDAO implements MetadataDAO, Event
 
     @Override
     public List<EventHandler> getAllEventHandlers() {
-        final String READ_ALL_EVENT_HANDLER_QUERY = "SELECT json_data FROM meta_event_handler";
+       final String READ_ALL_EVENT_HANDLER_QUERY = "SELECT json_data FROM meta_event_handler";
         return queryWithTransaction(READ_ALL_EVENT_HANDLER_QUERY, q -> q.executeAndFetch(EventHandler.class));
     }
 
