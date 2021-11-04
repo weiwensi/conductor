@@ -195,6 +195,7 @@ public abstract class MySQLBaseDAO {
      * @return The results of applying {@literal function}.
      */
     protected <R> R queryWithTransaction(String query, QueryFunction<R> function) {
+      //  System.out.println(query+"param:"+function.apply());
         return getWithRetriedTransactions(tx -> query(tx, query, function));
     }
 
