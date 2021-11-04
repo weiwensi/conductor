@@ -13,9 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -59,8 +57,8 @@ public class EventResourceTest {
         eventResource.addEventHandler(eventHandler);
         List<EventHandler> listOfEventHandler = new ArrayList<>();
         listOfEventHandler.add(eventHandler);
-        when(mockEventService.getEventHandlersForEvent(anyString(), anyBoolean())).thenReturn(listOfEventHandler);
-        assertEquals(listOfEventHandler, eventResource.getEventHandlersForEvent("testEvent", true));
+        when(mockEventService.getEventHandlersForEvent(anyString(), anyInt())).thenReturn(listOfEventHandler);
+        assertEquals(listOfEventHandler, eventResource.getEventHandlersForEvent("testEvent", 1));
     }
 
     @Test

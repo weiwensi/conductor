@@ -106,7 +106,7 @@ public class RedisEventHandlerDAO extends BaseDynoDAO implements EventHandlerDAO
     }
 
     @Override
-    public List<EventHandler> getEventHandlersForEvent(String event, boolean activeOnly) {
+    public List<EventHandler> getEventHandlersForEvent(String event, Integer activeOnly) {
         String key = nsKey(EVENT_HANDLERS_BY_EVENT, event);
         Set<String> names = dynoClient.smembers(key);
         List<EventHandler> handlers = new LinkedList<>();
@@ -114,7 +114,7 @@ public class RedisEventHandlerDAO extends BaseDynoDAO implements EventHandlerDAO
             try {
                 EventHandler eventHandler = getEventHandler(name);
                 recordRedisDaoEventRequests("getEventHandler", event);
-                if(eventHandler.getEvent().equals(event) && (!activeOnly || eventHandler.isActive())) {
+                if(eventHandler.getEvent().equals(event) && (activeOnly==0 || eventHandler.isActive()==1)) {
                     handlers.add(eventHandler);
                 }
             } catch (ApplicationException ae) {

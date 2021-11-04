@@ -248,7 +248,7 @@ public class PostgresMetadataDAOTest {
 
         EventHandler eh = new EventHandler();
         eh.setName(UUID.randomUUID().toString());
-        eh.setActive(false);
+        eh.setActive(0);
         EventHandler.Action action = new EventHandler.Action();
         action.setAction(EventHandler.Action.Type.start_workflow);
         action.setStart_workflow(new EventHandler.StartWorkflow());
@@ -263,11 +263,11 @@ public class PostgresMetadataDAOTest {
         assertEquals(eh.getName(), all.get(0).getName());
         assertEquals(eh.getEvent(), all.get(0).getEvent());
 
-        List<EventHandler> byEvents = dao.getEventHandlersForEvent(event1, true);
+        List<EventHandler> byEvents = dao.getEventHandlersForEvent(event1, 1);
         assertNotNull(byEvents);
         assertEquals(0, byEvents.size());		//event is marked as in-active
 
-        eh.setActive(true);
+        eh.setActive(1);
         eh.setEvent(event2);
         dao.updateEventHandler(eh);
 
@@ -275,11 +275,11 @@ public class PostgresMetadataDAOTest {
         assertNotNull(all);
         assertEquals(1, all.size());
 
-        byEvents = dao.getEventHandlersForEvent(event1, true);
+        byEvents = dao.getEventHandlersForEvent(event1, 1);
         assertNotNull(byEvents);
         assertEquals(0, byEvents.size());
 
-        byEvents = dao.getEventHandlersForEvent(event2, true);
+        byEvents = dao.getEventHandlersForEvent(event2, 1);
         assertNotNull(byEvents);
         assertEquals(1, byEvents.size());
     }

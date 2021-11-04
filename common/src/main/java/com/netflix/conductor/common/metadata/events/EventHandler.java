@@ -51,7 +51,7 @@ public class EventHandler {
 	private List<@Valid Action> actions = new LinkedList<>();
 
 	@ProtoField(id = 5)
-	private boolean active;
+	private Integer active;
 
 	public EventHandler() {
 
@@ -120,7 +120,7 @@ public class EventHandler {
 	/**
 	 * @return the active
 	 */
-	public boolean isActive() {
+	public Integer isActive() {
 		return active;
 	}
 
@@ -128,7 +128,7 @@ public class EventHandler {
 	 * @param active if set to false, the event handler is deactivated
 	 *
 	 */
-	public void setActive(boolean active) {
+	public void setActive(Integer active) {
 		this.active = active;
 	}
 

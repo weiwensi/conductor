@@ -227,7 +227,7 @@ public class MetadataServiceImpl implements MetadataService {
      * @return Returns the list of all the event handlers for a given event
      */
     @Service
-    public List<EventHandler> getEventHandlersForEvent(String event, boolean activeOnly) {
+    public List<EventHandler> getEventHandlersForEvent(String event, Integer activeOnly) {
         return eventHandlerDAO.getEventHandlersForEvent(event, activeOnly);
     }
 }

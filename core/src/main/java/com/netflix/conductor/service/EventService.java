@@ -57,7 +57,7 @@ public interface EventService {
      * @param activeOnly `true|false` for active only events
      * @return list of {@link EventHandler}
      */
-    List<EventHandler> getEventHandlersForEvent(@NotEmpty(message = "Event cannot be null or empty.") String event, boolean activeOnly);
+    List<EventHandler> getEventHandlersForEvent(@NotEmpty(message = "Event cannot be null or empty.") String event, Integer activeOnly);
 
     /**
      * Get registered queues.

@@ -74,8 +74,9 @@ public final class EventHandlerPb {
 
     /**
      * <code>bool active = 5;</code>
+     * @return
      */
-    boolean getActive();
+    Integer getActive();
   }
   /**
    * Protobuf type {@code conductor.proto.EventHandler}
@@ -94,7 +95,7 @@ public final class EventHandlerPb {
       event_ = "";
       condition_ = "";
       actions_ = java.util.Collections.emptyList();
-      active_ = false;
+      active_ = 0;
     }
 
     @Override
@@ -157,7 +158,7 @@ public final class EventHandlerPb {
             }
             case 40: {
 
-              active_ = input.readBool();
+              active_ = input.readInt32();
               break;
             }
           }
@@ -4372,11 +4373,12 @@ public final class EventHandlerPb {
     }
 
     public static final int ACTIVE_FIELD_NUMBER = 5;
-    private boolean active_;
+    private Integer active_;
     /**
      * <code>bool active = 5;</code>
+     * @return
      */
-    public boolean getActive() {
+    public Integer getActive() {
       return active_;
     }
 
@@ -4404,8 +4406,8 @@ public final class EventHandlerPb {
       for (int i = 0; i < actions_.size(); i++) {
         output.writeMessage(4, actions_.get(i));
       }
-      if (active_ != false) {
-        output.writeBool(5, active_);
+      if (active_ != 0) {
+        output.writeInt32(5, active_);
       }
       unknownFields.writeTo(output);
     }
@@ -4428,9 +4430,9 @@ public final class EventHandlerPb {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(4, actions_.get(i));
       }
-      if (active_ != false) {
+      if (active_ != 0) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBoolSize(5, active_);
+          .computeInt32Size(5, active_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -4480,7 +4482,7 @@ public final class EventHandlerPb {
         hash = (53 * hash) + getActionsList().hashCode();
       }
       hash = (37 * hash) + ACTIVE_FIELD_NUMBER;
-      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
           getActive());
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
@@ -4624,7 +4626,7 @@ public final class EventHandlerPb {
         } else {
           actionsBuilder_.clear();
         }
-        active_ = false;
+        active_ = 0;
 
         return this;
       }
@@ -4743,7 +4745,7 @@ public final class EventHandlerPb {
             }
           }
         }
-        if (other.getActive() != false) {
+        if (other.getActive() != 0) {
           setActive(other.getActive());
         }
         this.mergeUnknownFields(other.unknownFields);
@@ -5221,17 +5223,18 @@ public final class EventHandlerPb {
         return actionsBuilder_;
       }
 
-      private boolean active_ ;
+      private Integer active_ ;
       /**
        * <code>bool active = 5;</code>
+       * @return
        */
-      public boolean getActive() {
+      public Integer getActive() {
         return active_;
       }
       /**
        * <code>bool active = 5;</code>
        */
-      public Builder setActive(boolean value) {
+      public Builder setActive(Integer value) {
         
         active_ = value;
         onChanged();
@@ -5242,7 +5245,7 @@ public final class EventHandlerPb {
        */
       public Builder clearActive() {
         
-        active_ = false;
+        active_ = 0;
         onChanged();
         return this;
       }

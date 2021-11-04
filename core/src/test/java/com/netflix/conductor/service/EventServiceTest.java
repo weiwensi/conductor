@@ -95,7 +95,7 @@ public class EventServiceTest {
     @Test(expected = ConstraintViolationException.class)
     public void testGetEventHandlersForEvent(){
         try{
-            eventService.getEventHandlersForEvent(null, false);
+            eventService.getEventHandlersForEvent(null, 0);
         } catch (ConstraintViolationException ex){
             assertEquals(1, ex.getConstraintViolations().size());
             Set<String> messages = getConstraintViolationMessages(ex.getConstraintViolations());

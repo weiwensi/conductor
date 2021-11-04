@@ -49,5 +49,5 @@ public interface EventHandlerDAO {
      * @param activeOnly if true, returns only the active handlers
      * @return Returns the list of all the event handlers for a given event
      */
-    List<EventHandler> getEventHandlersForEvent(String event, boolean activeOnly);
+    List<EventHandler> getEventHandlersForEvent(String event, Integer activeOnly);
 }

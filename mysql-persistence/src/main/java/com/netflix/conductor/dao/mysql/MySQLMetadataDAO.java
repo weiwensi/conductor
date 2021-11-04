@@ -253,7 +253,7 @@ public class MySQLMetadataDAO extends MySQLBaseDAO implements MetadataDAO, Event
     }
 
     @Override
-    public List<EventHandler> getEventHandlersForEvent(String event, boolean activeOnly) {
+    public List<EventHandler> getEventHandlersForEvent(String event, Integer activeOnly) {
         final String READ_ALL_EVENT_HANDLER_BY_EVENT_QUERY = "SELECT json_data FROM meta_event_handler WHERE event = ?";
         return queryWithTransaction(READ_ALL_EVENT_HANDLER_BY_EVENT_QUERY, q -> {
             q.addParameter(event);
@@ -261,7 +261,7 @@ public class MySQLMetadataDAO extends MySQLBaseDAO implements MetadataDAO, Event
                 List<EventHandler> handlers = new ArrayList<>();
                 while (rs.next()) {
                     EventHandler h = readValue(rs.getString(1), EventHandler.class);
-                    if (!activeOnly || h.isActive()) {
+                    if (activeOnly==0 || h.isActive()==1) {
                         handlers.add(h);
                     }
                 }
