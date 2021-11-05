@@ -145,7 +145,7 @@ public class PostgresQueueDAO extends PostgresBaseDAO implements QueueDAO {
 
     @Override
     public Map<String, Long> queuesDetail() {
-        final String GET_QUEUES_DETAIL = "SELECT queue_name, (SELECT count(*) FROM queue_message WHERE popped = false AND queue_name = q.queue_name) AS size FROM queue q FOR SHARE SKIP LOCKED";
+        final String GET_QUEUES_DETAIL = "SELECT queue_name, (SELECT count(*) FROM queue_message WHERE popped = 0 AND queue_name = q.queue_name) AS size FROM queue q FOR SHARE SKIP LOCKED";
         return queryWithTransaction(GET_QUEUES_DETAIL, q -> q.executeAndFetch(rs -> {
             Map<String, Long> detail = Maps.newHashMap();
             while (rs.next()) {
@@ -161,8 +161,8 @@ public class PostgresQueueDAO extends PostgresBaseDAO implements QueueDAO {
     public Map<String, Map<String, Map<String, Long>>> queuesDetailVerbose() {
         // @formatter:off
         final String GET_QUEUES_DETAIL_VERBOSE = "SELECT queue_name, \n"
-                + "       (SELECT count(*) FROM queue_message WHERE popped = false AND queue_name = q.queue_name) AS size,\n"
-                + "       (SELECT count(*) FROM queue_message WHERE popped = true AND queue_name = q.queue_name) AS uacked \n"
+                + "       (SELECT count(*) FROM queue_message WHERE popped = 0 AND queue_name = q.queue_name) AS size,\n"
+                + "       (SELECT count(*) FROM queue_message WHERE popped = 1 AND queue_name = q.queue_name) AS uacked \n"
                 + "FROM queue q FOR SHARE SKIP LOCKED";
         // @formatter:on
 

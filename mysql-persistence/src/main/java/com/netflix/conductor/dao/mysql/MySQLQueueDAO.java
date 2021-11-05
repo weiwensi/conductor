@@ -115,7 +115,9 @@ public class MySQLQueueDAO extends MySQLBaseDAO implements QueueDAO {
 
     @Override
     public Map<String, Long> queuesDetail() {
-        final String GET_QUEUES_DETAIL = "SELECT queue_name, (SELECT count(*) FROM queue_message WHERE popped = false AND queue_name = q.queue_name) AS size FROM queue q";
+       final String GET_QUEUES_DETAIL = "SELECT queue_name, (SELECT count(*) FROM queue_message WHERE popped = 0 AND queue_name = q.queue_name) AS size FROM queue q";
+     //   final String GET_QUEUES_DETAIL = "select  ID,QUEUE_NAME from  QUEUE ";
+
         return queryWithTransaction(GET_QUEUES_DETAIL, q -> q.executeAndFetch(rs -> {
             Map<String, Long> detail = Maps.newHashMap();
             while (rs.next()) {
@@ -131,8 +133,8 @@ public class MySQLQueueDAO extends MySQLBaseDAO implements QueueDAO {
     public Map<String, Map<String, Map<String, Long>>> queuesDetailVerbose() {
         // @formatter:off
         final String GET_QUEUES_DETAIL_VERBOSE = "SELECT queue_name, \n"
-                + "       (SELECT count(*) FROM queue_message WHERE popped = false AND queue_name = q.queue_name) AS size,\n"
-                + "       (SELECT count(*) FROM queue_message WHERE popped = true AND queue_name = q.queue_name) AS uacked \n"
+                + "       (SELECT count(*) FROM queue_message WHERE popped = 0 AND queue_name = q.queue_name) AS size,\n"
+                + "       (SELECT count(*) FROM queue_message WHERE popped = 1 AND queue_name = q.queue_name) AS uacked \n"
                 + "FROM queue q";
         // @formatter:on
 
@@ -160,13 +162,13 @@ public class MySQLQueueDAO extends MySQLBaseDAO implements QueueDAO {
         logger.trace("processAllUnacks started");
 
 
-        final String PROCESS_ALL_UNACKS = "UPDATE queue_message SET popped = false WHERE popped = true AND TIMESTAMPADD(SECOND,-60,CURRENT_TIMESTAMP) > deliver_on";
+        final String PROCESS_ALL_UNACKS = "UPDATE queue_message SET popped = 0 WHERE popped = 1 AND TIMESTAMPADD(SECOND,-60,CURRENT_TIMESTAMP) > deliver_on";
         executeWithTransaction(PROCESS_ALL_UNACKS, Query::executeUpdate);
     }
 
     @Override
     public void processUnacks(String queueName) {
-        final String PROCESS_UNACKS = "UPDATE queue_message SET popped = false WHERE queue_name = ? AND popped = true AND TIMESTAMPADD(SECOND,-60,CURRENT_TIMESTAMP)  > deliver_on";
+        final String PROCESS_UNACKS = "UPDATE queue_message SET popped = 0 WHERE queue_name = ? AND popped = 1 AND TIMESTAMPADD(SECOND,-60,CURRENT_TIMESTAMP)  > deliver_on";
         executeWithTransaction(PROCESS_UNACKS, q -> q.addParameter(queueName).executeUpdate());
     }
 
@@ -212,7 +214,7 @@ public class MySQLQueueDAO extends MySQLBaseDAO implements QueueDAO {
         if (count < 1)
             return Collections.emptyList();
 
-        final String PEEK_MESSAGES = "SELECT message_id, priority, payload FROM queue_message use index(combo_queue_message) WHERE queue_name = ? AND popped = false AND deliver_on <= TIMESTAMPADD(MICROSECOND, 1000, CURRENT_TIMESTAMP) ORDER BY priority DESC, deliver_on, created_on LIMIT ?";
+        final String PEEK_MESSAGES = "SELECT message_id, priority, payload FROM queue_message use index(combo_queue_message) WHERE queue_name = ? AND popped = 0 AND deliver_on <= TIMESTAMPADD(MICROSECOND, 1000, CURRENT_TIMESTAMP) ORDER BY priority DESC, deliver_on, created_on LIMIT ?";
 
         List<Message> messages = query(connection, PEEK_MESSAGES, p -> p.addParameter(queueName)
                 .addParameter(count).executeAndFetch(rs -> {
@@ -245,7 +247,7 @@ public class MySQLQueueDAO extends MySQLBaseDAO implements QueueDAO {
 
         List<Message> poppedMessages = new ArrayList<>();
         for (Message message: messages) {
-            final String POP_MESSAGE = "UPDATE queue_message SET popped = true WHERE queue_name = ? AND message_id = ? AND popped = false";
+            final String POP_MESSAGE = "UPDATE queue_message SET popped = 1 WHERE queue_name = ? AND message_id = ? AND popped = 0";
             int result = query(connection, POP_MESSAGE, q -> q.addParameter(queueName).addParameter(message.getId()).executeUpdate());
 
             if (result == 1) {

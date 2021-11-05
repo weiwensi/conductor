@@ -351,7 +351,7 @@ public class PostgresExecutionDAO extends PostgresBaseDAO implements ExecutionDA
 
     @Override
     public long getInProgressTaskCount(String taskDefName) {
-        String GET_IN_PROGRESS_TASK_COUNT = "SELECT COUNT(*) FROM task_in_progress WHERE task_def_name = ? AND in_progress_status = true";
+        String GET_IN_PROGRESS_TASK_COUNT = "SELECT COUNT(*) FROM task_in_progress WHERE task_def_name = ? AND in_progress_status = 1";
 
         return queryWithTransaction(GET_IN_PROGRESS_TASK_COUNT, q -> q.addParameter(taskDefName).executeCount());
     }
@@ -539,8 +539,14 @@ public class PostgresExecutionDAO extends PostgresBaseDAO implements ExecutionDA
         Optional<TaskDef> taskDefinition = task.getTaskDefinition();
 
         if (taskDefinition.isPresent() && taskDefinition.get().concurrencyLimit() > 0) {
-            boolean inProgress = task.getStatus() != null && task.getStatus().equals(Task.Status.IN_PROGRESS);
+            Integer inProgress;
+            if(task.getStatus() != null && task.getStatus().equals(Task.Status.IN_PROGRESS)){
+                inProgress=1;
+            }else {
+                inProgress=0;
+            }
             updateInProgressStatus(connection, task, inProgress);
+
         }
 
         insertOrUpdateTaskData(connection, task);
@@ -701,7 +707,7 @@ public class PostgresExecutionDAO extends PostgresBaseDAO implements ExecutionDA
                 q -> q.addParameter(task.getTaskDefName()).addParameter(task.getTaskId()).executeUpdate());
     }
 
-    private void updateInProgressStatus(Connection connection, Task task, boolean inProgress) {
+    private void updateInProgressStatus(Connection connection, Task task, Integer inProgress) {
         String UPDATE_IN_PROGRESS_TASK_STATUS = "UPDATE task_in_progress SET in_progress_status = ?, modified_on = CURRENT_TIMESTAMP "
                 + "WHERE task_def_name = ? AND task_id = ?";
 

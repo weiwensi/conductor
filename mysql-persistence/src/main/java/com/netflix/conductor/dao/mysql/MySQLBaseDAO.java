@@ -155,7 +155,7 @@ public abstract class MySQLBaseDAO {
                 return result;
             } catch (Throwable th) {
                 tx.rollback();
-                logger.info(CONFLICT + " " +th.getMessage());
+                logger.error(CONFLICT + " " +th.getMessage());
                 return null;
             } finally {
                 tx.setAutoCommit(previousAutoCommitMode);
@@ -238,6 +238,7 @@ public abstract class MySQLBaseDAO {
      * @param function The functional callback to pass a {@link Query} to.
      */
     protected void executeWithTransaction(String query, ExecuteFunction function) {
+        System.out.println(query);
         withTransaction(tx -> execute(tx, query, function));
     }
     private int ORACLE_DEAD_CODE=04020;

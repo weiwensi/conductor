@@ -1,0 +1,17 @@
+--创建一个自增的序列
+create sequence incr_seq_WORKFLOW_TO_TASK
+increment by 1
+start with 1
+nomaxvalue
+nominvalue
+nocache;
+--给表创建触发器
+create or replace trigger incr_seq_WORKFLOW_TO_TASK
+before insert on _WORKFLOW_TO_TASK for each row
+begin
+ select incr_seq_WORKFLOW_TO_TASK.nextval into :new.id from dual;
+end;
+
+
+
+

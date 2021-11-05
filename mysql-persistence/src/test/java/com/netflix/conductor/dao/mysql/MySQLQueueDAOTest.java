@@ -192,7 +192,7 @@ public class MySQLQueueDAOTest {
 		// Assert that our un-popped messages match our expected size
 		final long expectedSize = totalSize - firstPollSize - secondPollSize;
 		try(Connection c = testUtil.getDataSource().getConnection()) {
-			String UNPOPPED = "SELECT COUNT(*) FROM queue_message WHERE queue_name = ? AND popped = false";
+			String UNPOPPED = "SELECT COUNT(*) FROM queue_message WHERE queue_name = ? AND popped = 0";
 			try(Query q = new Query(testUtil.getObjectMapper(), c, UNPOPPED)) {
 				long count = q.addParameter(queueName).executeCount();
 				assertEquals("Remaining queue size mismatch", expectedSize, count);
@@ -271,7 +271,7 @@ public class MySQLQueueDAOTest {
 		// Assert that our un-popped messages match our expected size
 		final long expectedSize = totalSize - firstPollSize - secondPollSize;
 		try(Connection c = testUtil.getDataSource().getConnection()) {
-			String UNPOPPED = "SELECT COUNT(*) FROM queue_message WHERE queue_name = ? AND popped = false";
+			String UNPOPPED = "SELECT COUNT(*) FROM queue_message WHERE queue_name = ? AND popped = 0";
 			try(Query q = new Query(testUtil.getObjectMapper(), c, UNPOPPED)) {
 				long count = q.addParameter(queueName).executeCount();
 				assertEquals("Remaining queue size mismatch", expectedSize, count);
