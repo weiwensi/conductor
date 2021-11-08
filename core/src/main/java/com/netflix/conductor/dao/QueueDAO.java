@@ -198,4 +198,5 @@ public interface QueueDAO {
 	default boolean containsMessage(String queueName, String messageId) {
 		throw new UnsupportedOperationException("Please ensure your provided Queue implementation overrides and implements this method.");
 	}
+
 }

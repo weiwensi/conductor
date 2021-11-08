@@ -214,10 +214,13 @@ public class MySQLQueueDAO extends MySQLBaseDAO implements QueueDAO {
         if (count < 1)
             return Collections.emptyList();
 
-        final String PEEK_MESSAGES = "SELECT message_id, priority, payload FROM queue_message use index(combo_queue_message) WHERE queue_name = ? AND popped = 0 AND deliver_on <= TIMESTAMPADD(MICROSECOND, 1000, CURRENT_TIMESTAMP) ORDER BY priority DESC, deliver_on, created_on LIMIT ?";
-
-        List<Message> messages = query(connection, PEEK_MESSAGES, p -> p.addParameter(queueName)
-                .addParameter(count).executeAndFetch(rs -> {
+        //final String PEEK_MESSAGES = "SELECT message_id, priority, payload FROM queue_message use index(combo_queue_message) WHERE queue_name = ? AND popped = 0 AND deliver_on <= TIMESTAMPADD(MICROSECOND, 1000, CURRENT_TIMESTAMP) ORDER BY priority DESC, deliver_on, created_on LIMIT ?";
+       // final String PEEK_MESSAGES = "SELECT message_id, priority, payload FROM queue_message WHERE queue_name = ? AND popped = 0 AND deliver_on <= TIMESTAMPADD(MICROSECOND, 1000, CURRENT_TIMESTAMP) ORDER BY priority DESC, deliver_on, created_on ";
+        String PEEK_MESSAGES = "SELECT message_id,priority,payload FROM(SELECT ROWNUM,message_id,priority,payload FROM queue_message" +
+                "\tWHERE queue_name = ? AND popped = 0 AND deliver_on <=  sysdate +1000/(24*60*60*1000*1000)\n" +
+                "\tORDER BY priority DESC,deliver_on,created_on) WHERE ROWNUM < ?";
+        List<Message> messages = query(connection, PEEK_MESSAGES, p -> p.addParameter(queueName).
+                addParameter(count).executeAndFetch(rs -> {
                     List<Message> results = new ArrayList<>();
                     while (rs.next()) {
                         Message m = new Message();

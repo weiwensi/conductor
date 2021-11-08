@@ -209,6 +209,7 @@ public abstract class MySQLBaseDAO {
      * @return The results of applying {@literal function}.
      */
     protected <R> R query(Connection tx, String query, QueryFunction<R> function) {
+       // logger.info("SQL:------>>>"+query);
         try (Query q = new Query(objectMapper, tx, query)) {
             return function.apply(q);
         } catch (SQLException ex) {

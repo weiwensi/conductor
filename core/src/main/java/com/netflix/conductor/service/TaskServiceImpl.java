@@ -281,7 +281,7 @@ public class TaskServiceImpl implements TaskService {
      * @return map of details about each queue.
      */
     public Map<String, Long> getAllQueueDetails() {
-        return queueDAO.queuesDetail().entrySet().stream()
+            return queueDAO.queuesDetail().entrySet().stream()
                 .sorted(Comparator.comparing(Entry::getKey))
                 .collect(Collectors.toMap(Entry::getKey, Entry::getValue, (v1, v2) -> v1, LinkedHashMap::new));
     }
