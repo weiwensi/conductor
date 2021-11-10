@@ -20,6 +20,7 @@ import com.google.common.base.Preconditions;
 import com.netflix.conductor.common.metadata.events.EventHandler;
 import com.netflix.conductor.common.metadata.tasks.TaskDef;
 import com.netflix.conductor.common.metadata.workflow.WorkflowDef;
+import com.netflix.conductor.common.utils.JsonUtil;
 import com.netflix.conductor.core.config.Configuration;
 import com.netflix.conductor.core.execution.ApplicationException;
 import com.netflix.conductor.dao.EventHandlerDAO;
@@ -122,7 +123,6 @@ public class MySQLMetadataDAO extends MySQLBaseDAO implements MetadataDAO, Event
     public Optional<WorkflowDef> getLatestWorkflowDef(String name) {
         final String GET_LATEST_WORKFLOW_DEF_QUERY = "SELECT json_data FROM meta_workflow_def WHERE NAME = ? AND " +
                 "version = latest_version";
-
         return Optional.ofNullable(
                 queryWithTransaction(GET_LATEST_WORKFLOW_DEF_QUERY,
                         q -> q.addParameter(name).executeAndFetchFirst(WorkflowDef.class))
@@ -166,21 +166,18 @@ public class MySQLMetadataDAO extends MySQLBaseDAO implements MetadataDAO, Event
     @Override
     public List<WorkflowDef> getAllWorkflowDefs() {
         final String GET_ALL_WORKFLOW_DEF_QUERY = "SELECT json_data FROM meta_workflow_def ORDER BY name, version";
-
-        return queryWithTransaction(GET_ALL_WORKFLOW_DEF_QUERY, q -> q.executeAndFetch(WorkflowDef.class));
+        return   queryWithTransaction(GET_ALL_WORKFLOW_DEF_QUERY, q -> q.executeAndFetch(WorkflowDef.class));
     }
 
     public List<WorkflowDef> getAllLatest() {
         final String GET_ALL_LATEST_WORKFLOW_DEF_QUERY = "SELECT json_data FROM meta_workflow_def WHERE version = " +
                 "latest_version";
-
         return queryWithTransaction(GET_ALL_LATEST_WORKFLOW_DEF_QUERY, q -> q.executeAndFetch(WorkflowDef.class));
     }
 
     public List<WorkflowDef> getAllVersions(String name) {
         final String GET_ALL_VERSIONS_WORKFLOW_DEF_QUERY = "SELECT json_data FROM meta_workflow_def WHERE name = ? " +
                 "ORDER BY version";
-
         return queryWithTransaction(GET_ALL_VERSIONS_WORKFLOW_DEF_QUERY,
                 q -> q.addParameter(name).executeAndFetch(WorkflowDef.class));
     }

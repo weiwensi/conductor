@@ -572,7 +572,7 @@ public class PostgresExecutionDAO extends PostgresBaseDAO implements ExecutionDA
     }
 
     private void updateWorkflow(Connection connection, Workflow workflow) {
-        String UPDATE_WORKFLOW = "UPDATE workflow SET json_data = ?, modified_on = CURRENT_TIMESTAMP WHERE workflow_id = ?";
+        String UPDATE_WORKFLOW = "UPDATE workflow SET json_data = ?, modified_on = sysdate WHERE workflow_id = ?";
 
         execute(connection, UPDATE_WORKFLOW,
                 q -> q.addJsonParameter(workflow).addParameter(workflow.getWorkflowId()).executeUpdate());
@@ -609,11 +609,11 @@ public class PostgresExecutionDAO extends PostgresBaseDAO implements ExecutionDA
          * Most times the row will be updated so let's try the update first. This used to be an 'INSERT/ON CONFLICT do update' sql statement. The problem with that
          * is that if we try the INSERT first, the sequence will be increased even if the ON CONFLICT happens.
          */
-        String UPDATE_TASK = "UPDATE task SET json_data=?, modified_on=CURRENT_TIMESTAMP WHERE task_id=?";
+        String UPDATE_TASK = "UPDATE task SET json_data=?, modified_on=sysdate WHERE task_id=?";
         int rowsUpdated = query(connection, UPDATE_TASK, q -> q.addJsonParameter(task).addParameter(task.getTaskId()).executeUpdate());
 
         if (rowsUpdated == 0) {
-            String INSERT_TASK = "INSERT INTO task (task_id, json_data, modified_on) VALUES (?, ?, CURRENT_TIMESTAMP) ON CONFLICT (task_id) DO UPDATE SET json_data=excluded.json_data, modified_on=excluded.modified_on";
+            String INSERT_TASK = "INSERT INTO task (task_id, json_data, modified_on) VALUES (?, ?, sysdate) ON CONFLICT (task_id) DO UPDATE SET json_data=excluded.json_data, modified_on=excluded.modified_on";
             execute(connection, INSERT_TASK, q -> q.addParameter(task.getTaskId()).addJsonParameter(task).executeUpdate());
         }
     }
@@ -708,7 +708,7 @@ public class PostgresExecutionDAO extends PostgresBaseDAO implements ExecutionDA
     }
 
     private void updateInProgressStatus(Connection connection, Task task, Integer inProgress) {
-        String UPDATE_IN_PROGRESS_TASK_STATUS = "UPDATE task_in_progress SET in_progress_status = ?, modified_on = CURRENT_TIMESTAMP "
+        String UPDATE_IN_PROGRESS_TASK_STATUS = "UPDATE task_in_progress SET in_progress_status = ?, modified_on = sysdate "
                 + "WHERE task_def_name = ? AND task_id = ?";
 
         execute(connection, UPDATE_IN_PROGRESS_TASK_STATUS, q -> q.addParameter(inProgress)
@@ -729,7 +729,7 @@ public class PostgresExecutionDAO extends PostgresBaseDAO implements ExecutionDA
     private void updateEventExecution(Connection connection, EventExecution eventExecution) {
         // @formatter:off
         String UPDATE_EVENT_EXECUTION = "UPDATE event_execution SET " + "json_data = ?, "
-                + "modified_on = CURRENT_TIMESTAMP " + "WHERE event_handler_name = ? " + "AND event_name = ? "
+                + "modified_on = sysdate " + "WHERE event_handler_name = ? " + "AND event_name = ? "
                 + "AND message_id = ? " + "AND execution_id = ?";
         // @formatter:on
 
@@ -766,11 +766,11 @@ public class PostgresExecutionDAO extends PostgresBaseDAO implements ExecutionDA
          * is that if we try the INSERT first, the sequence will be increased even if the ON CONFLICT happens. Since polling happens *a lot*, the sequence can increase
          * dramatically even though it won't be used.
          */
-        String UPDATE_POLL_DATA = "UPDATE poll_data SET json_data=?, modified_on=CURRENT_TIMESTAMP WHERE queue_name=? AND domain=?";
+        String UPDATE_POLL_DATA = "UPDATE poll_data SET json_data=?, modified_on=sysdate WHERE queue_name=? AND domain=?";
         int rowsUpdated = query(connection, UPDATE_POLL_DATA, q -> q.addJsonParameter(pollData).addParameter(pollData.getQueueName()).addParameter(domain).executeUpdate());
 
         if (rowsUpdated == 0) {
-            String INSERT_POLL_DATA = "INSERT INTO poll_data (queue_name, domain, json_data, modified_on) VALUES (?, ?, ?, CURRENT_TIMESTAMP) ON CONFLICT (queue_name,domain) DO UPDATE SET json_data=excluded.json_data, modified_on=excluded.modified_on";
+            String INSERT_POLL_DATA = "INSERT INTO poll_data (queue_name, domain, json_data, modified_on) VALUES (?, ?, ?, sysdate) ON CONFLICT (queue_name,domain) DO UPDATE SET json_data=excluded.json_data, modified_on=excluded.modified_on";
             execute(connection, INSERT_POLL_DATA, q -> q.addParameter(pollData.getQueueName()).addParameter(domain)
                     .addJsonParameter(pollData).executeUpdate());
         }

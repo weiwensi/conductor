@@ -211,7 +211,7 @@ public class PostgresMetadataDAO extends PostgresBaseDAO implements MetadataDAO,
         //@formatter:off
         final String UPDATE_EVENT_HANDLER_QUERY = "UPDATE meta_event_handler SET " +
                 "event = ?, active = ?, json_data = ?, " +
-                "modified_on = CURRENT_TIMESTAMP WHERE name = ?";
+                "modified_on = sysdate WHERE name = ?";
         //@formatter:on
 
         withTransaction(tx -> {
@@ -374,7 +374,7 @@ public class PostgresMetadataDAO extends PostgresBaseDAO implements MetadataDAO,
             //@formatter:off
             final String UPDATE_WORKFLOW_DEF_QUERY =
                     "UPDATE meta_workflow_def " +
-                            "SET json_data = ?, modified_on = CURRENT_TIMESTAMP " +
+                            "SET json_data = ?, modified_on = sysdate " +
                             "WHERE name = ? AND version = ?";
             //@formatter:on
 
@@ -441,7 +441,7 @@ public class PostgresMetadataDAO extends PostgresBaseDAO implements MetadataDAO,
     }
 
     private String insertOrUpdateTaskDef(TaskDef taskDef) {
-        final String UPDATE_TASKDEF_QUERY = "UPDATE meta_task_def SET json_data = ?, modified_on = CURRENT_TIMESTAMP WHERE name = ?";
+        final String UPDATE_TASKDEF_QUERY = "UPDATE meta_task_def SET json_data = ?, modified_on = sysdate WHERE name = ?";
 
         final String INSERT_TASKDEF_QUERY = "INSERT INTO meta_task_def (name, json_data) VALUES (?, ?)";
 
