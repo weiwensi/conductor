@@ -26,6 +26,7 @@ import com.netflix.conductor.dao.ExecutionDAO;
 import com.netflix.conductor.dao.PollDataDAO;
 import com.netflix.conductor.dao.RateLimitingDAO;
 import com.netflix.conductor.metrics.Monitors;
+import com.netflix.conductor.util.JsonUtil;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -71,8 +72,9 @@ public class MySQLExecutionDAO extends MySQLBaseDAO implements ExecutionDAO, Rat
         String GET_IN_PROGRESS_TASKS_FOR_WORKFLOW = "SELECT json_data FROM task_in_progress tip "
                 + "INNER JOIN task t ON t.task_id = tip.task_id " + "WHERE task_def_name = ? AND workflow_id = ?";
         // @formatter:on
-        return queryWithTransaction(GET_IN_PROGRESS_TASKS_FOR_WORKFLOW,
-                q -> q.addParameter(taskDefName).addParameter(workflowId).executeAndFetch(Task.class));
+        List<String> jsonStr = queryWithTransaction(GET_IN_PROGRESS_TASKS_FOR_WORKFLOW,
+                q -> q.addParameter(taskDefName).addParameter(workflowId).executeAndFetchForClob());
+        return JsonUtil.jsonStrToJavaBean(jsonStr,Task.class);
     }
 
     @Override
@@ -217,7 +219,8 @@ public class MySQLExecutionDAO extends MySQLBaseDAO implements ExecutionDAO, Rat
     @Override
     public Task getTask(String taskId) {
         String GET_TASK = "SELECT json_data FROM task WHERE task_id = ?";
-        return queryWithTransaction(GET_TASK, q -> q.addParameter(taskId).executeAndFetchFirst(Task.class));
+        String s = queryWithTransaction(GET_TASK, q -> q.addParameter(taskId).executeAndFetchFirstForClob());
+        return  JsonUtil.jsonStrToJavaBean(s,Task.class);
     }
 
     @Override
@@ -235,8 +238,9 @@ public class MySQLExecutionDAO extends MySQLBaseDAO implements ExecutionDAO, Rat
         String GET_IN_PROGRESS_TASKS_FOR_TYPE = "SELECT json_data FROM task_in_progress tip "
                 + "INNER JOIN task t ON t.task_id = tip.task_id " + "WHERE task_def_name = ?";
         // @formatter:on
-        return queryWithTransaction(GET_IN_PROGRESS_TASKS_FOR_TYPE,
-                q -> q.addParameter(taskName).executeAndFetch(Task.class));
+        List<String> jsonStr = queryWithTransaction(GET_IN_PROGRESS_TASKS_FOR_TYPE,
+                q -> q.addParameter(taskName).executeAndFetchForClob());
+        return JsonUtil.jsonStrToJavaBean(jsonStr,Task.class);
     }
 
     @Override
@@ -482,7 +486,8 @@ public class MySQLExecutionDAO extends MySQLBaseDAO implements ExecutionDAO, Rat
             tx.setAutoCommit(true);
             try {
                 String GET_ALL_POLL_DATA = "SELECT json_data FROM poll_data ORDER BY queue_name";
-                return query(tx, GET_ALL_POLL_DATA, q -> q.executeAndFetch(PollData.class));
+                List<String> query = query(tx, GET_ALL_POLL_DATA, q -> q.executeAndFetchForClob());
+                return JsonUtil.jsonStrToJavaBean(query,PollData.class);
             } catch (Throwable th) {
                 throw new ApplicationException(BACKEND_ERROR, th.getMessage(), th);
             } finally {
@@ -503,7 +508,8 @@ public class MySQLExecutionDAO extends MySQLBaseDAO implements ExecutionDAO, Rat
         final String GET_TASKS_FOR_IDS = String.format(
                 "SELECT json_data FROM task WHERE task_id IN (%s) AND json_data IS NOT NULL",
                 Query.generateInBindings(taskIds.size()));
-        return query(connection, GET_TASKS_FOR_IDS, q -> q.addParameters(taskIds).executeAndFetch(Task.class));
+        List<String> query = query(connection, GET_TASKS_FOR_IDS, q -> q.addParameters(taskIds).executeAndFetchForClob());
+        return JsonUtil.jsonStrToJavaBean(query,Task.class);
     }
 
     private String insertOrUpdateWorkflow(Workflow workflow, boolean update) {
@@ -560,7 +566,8 @@ public class MySQLExecutionDAO extends MySQLBaseDAO implements ExecutionDAO, Rat
 
     private Workflow readWorkflow(Connection connection, String workflowId) {
         String GET_WORKFLOW = "SELECT json_data FROM workflow WHERE workflow_id = ?";
-        return query(connection, GET_WORKFLOW, q -> q.addParameter(workflowId).executeAndFetchFirst(Workflow.class));
+        String query = query(connection, GET_WORKFLOW, q -> q.addParameter(workflowId).executeAndFetchFirstForClob());
+        return JsonUtil.jsonStrToJavaBean(query,Workflow.class);
     }
 
     private void addWorkflow(Connection connection, Workflow workflow) {
@@ -755,8 +762,9 @@ public class MySQLExecutionDAO extends MySQLBaseDAO implements ExecutionDAO, Rat
         String GET_EVENT_EXECUTION = "SELECT json_data FROM event_execution " + "WHERE event_handler_name = ? "
                 + "AND event_name = ? " + "AND message_id = ? " + "AND execution_id = ?";
         // @formatter:on
-        return query(connection, GET_EVENT_EXECUTION, q -> q.addParameter(eventHandlerName).addParameter(eventName)
-                .addParameter(messageId).addParameter(executionId).executeAndFetchFirst(EventExecution.class));
+        String query = query(connection, GET_EVENT_EXECUTION, q -> q.addParameter(eventHandlerName).addParameter(eventName)
+                .addParameter(messageId).addParameter(executionId).executeAndFetchFirstForClob());
+        return JsonUtil.jsonStrToJavaBean(query,EventExecution.class);
     }
 
     private void insertOrUpdatePollData(Connection connection, PollData pollData, String domain) {
@@ -778,14 +786,15 @@ public class MySQLExecutionDAO extends MySQLBaseDAO implements ExecutionDAO, Rat
 
     private PollData readPollData(Connection connection, String queueName, String domain) {
         String GET_POLL_DATA = "SELECT json_data FROM poll_data WHERE queue_name = ? AND domain = ?";
-
-        return query(connection, GET_POLL_DATA,
-                q -> q.addParameter(queueName).addParameter(domain).executeAndFetchFirst(PollData.class));
+        String query = query(connection, GET_POLL_DATA,
+                q -> q.addParameter(queueName).addParameter(domain).executeAndFetchFirstForClob());
+        return JsonUtil.jsonStrToJavaBean(query,PollData.class);
     }
 
     private List<PollData> readAllPollData(String queueName) {
         String GET_ALL_POLL_DATA = "SELECT json_data FROM poll_data WHERE queue_name = ?";
-        return queryWithTransaction(GET_ALL_POLL_DATA, q -> q.addParameter(queueName).executeAndFetch(PollData.class));
+        List<String> jsons = queryWithTransaction(GET_ALL_POLL_DATA, q -> q.addParameter(queueName).executeAndFetchForClob());
+        return JsonUtil.jsonStrToJavaBean(jsons,PollData.class);
     }
 
     private List<String> findAllTasksInProgressInOrderOfArrival(Task task, int limit) {
