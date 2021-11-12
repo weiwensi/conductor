@@ -1,6 +1,9 @@
-package com.netflix.conductor.common.utils;
+package com.netflix.conductor.util;
 
 import com.alibaba.fastjson.JSONObject;
+import com.netflix.conductor.common.metadata.tasks.TaskDef;
+import com.netflix.conductor.common.utils.ClobUtil;
+import oracle.sql.CLOB;
 import org.apache.bval.util.StringUtils;
 
 import java.util.ArrayList;
@@ -31,4 +34,5 @@ public class JsonUtil {
         });
         return list;
     }
+
 }

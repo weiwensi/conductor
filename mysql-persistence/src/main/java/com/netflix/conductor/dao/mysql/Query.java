@@ -3,20 +3,20 @@ package com.netflix.conductor.dao.mysql;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.conductor.common.utils.ClobUtil;
 import com.netflix.conductor.core.execution.ApplicationException;
 import com.netflix.conductor.sql.ResultSetHandler;
 
+import com.netflix.conductor.util.JsonUtil;
+import oracle.sql.CLOB;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.Date;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Timestamp;
+import java.io.Reader;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -407,7 +407,49 @@ public class Query implements AutoCloseable {
             throw new ApplicationException(Code.BACKEND_ERROR, ex);
         }
     }
+    public  List<String> executeAndFetchForClob() {
+        try (ResultSet rs = executeQuery()) {
+            List<String> list = new ArrayList<>();
+            while (rs.next()) {
 
+                Clob clob = rs.getClob(1);
+                String clobStr = ClobToString(clob);
+                list.add(clobStr);
+            }
+            return list;
+        } catch (SQLException ex) {
+            throw new ApplicationException(Code.BACKEND_ERROR, ex);
+        }
+    }
+
+    public  String executeAndFetchFirstForClob() {
+        Object o = executeScalar();
+        if (null == o) {
+            return null;
+        }
+        Clob clob= (Clob) o;
+        String clobStr = ClobToString(clob);
+
+        return clobStr;
+    }
+    public String ClobToString(Clob clob)  {
+        String reString = "";
+        try {
+            Reader is = clob.getCharacterStream();// 得到流
+            BufferedReader br = new BufferedReader(is);
+            String s = br.readLine();
+            StringBuffer sb = new StringBuffer();
+            while (s != null) {// 执行循环将字符串全部取出付值给StringBuffer由StringBuffer转成STRING
+                sb.append(s);
+                s = br.readLine();
+            }
+            reString = sb.toString();
+        }catch (Exception e){
+            throw new RuntimeException("clob to String Exception");
+        }
+
+        return reString;
+    }
     /**
      * Execute the query and pass the {@link ResultSet} to the given handler.
      *
@@ -485,7 +527,11 @@ public class Query implements AutoCloseable {
             return returnType.cast(convertString(value));
         } else if (value instanceof String) {
             return fromJson((String) value, returnType);
-        }
+        }/*else if(value instanceof CLOB){
+            //String str = ClobUtil.clobToString((CLOB) value);
+            return returnType.cast(convert(value,CLOB.class));
+            //String s = fromJson((String) str, String.class);
+        }*/
 
         final String vName = value.getClass().getName();
         final String rName = returnType.getName();

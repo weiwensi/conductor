@@ -16,16 +16,20 @@
 package com.netflix.conductor.dao.mysql;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.netflix.conductor.common.metadata.events.EventHandler;
 import com.netflix.conductor.common.metadata.tasks.TaskDef;
 import com.netflix.conductor.common.metadata.workflow.WorkflowDef;
-import com.netflix.conductor.common.utils.JsonUtil;
+import com.netflix.conductor.util.JsonUtil;
 import com.netflix.conductor.core.config.Configuration;
 import com.netflix.conductor.core.execution.ApplicationException;
 import com.netflix.conductor.dao.EventHandlerDAO;
 import com.netflix.conductor.dao.MetadataDAO;
 import com.netflix.conductor.metrics.Monitors;
+import oracle.sql.CLOB;
+
+import java.sql.Clob;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -246,7 +250,7 @@ public class MySQLMetadataDAO extends MySQLBaseDAO implements MetadataDAO, Event
     @Override
     public List<EventHandler> getAllEventHandlers() {
        final String READ_ALL_EVENT_HANDLER_QUERY = "SELECT json_data FROM meta_event_handler";
-        return queryWithTransaction(READ_ALL_EVENT_HANDLER_QUERY, q -> q.executeAndFetch(EventHandler.class));
+       return queryWithTransaction(READ_ALL_EVENT_HANDLER_QUERY, q -> q.executeAndFetch(EventHandler.class));
     }
 
     @Override
@@ -417,13 +421,13 @@ public class MySQLMetadataDAO extends MySQLBaseDAO implements MetadataDAO, Event
     /**
      * Query persistence for all defined {@link TaskDef} data.
      *
-     * @param tx The {@link Connection} to use for queries.
+     * @param tx The {@link Connection} to use for queries.2
      * @return A new {@code List<TaskDef>} with all the {@code TaskDef} data that was retrieved.
      */
     private List<TaskDef> findAllTaskDefs(Connection tx) {
         final String READ_ALL_TASKDEF_QUERY = "SELECT json_data FROM meta_task_def";
-
-        return query(tx, READ_ALL_TASKDEF_QUERY, q -> q.executeAndFetch(TaskDef.class));
+        List<String> query = query(tx, READ_ALL_TASKDEF_QUERY, q -> q.executeAndFetchForClob());
+        return JsonUtil.jsonStrToJavaBean(query, TaskDef.class);
     }
 
     /**
