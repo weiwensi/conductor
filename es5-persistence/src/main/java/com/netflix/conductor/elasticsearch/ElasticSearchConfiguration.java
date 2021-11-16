@@ -79,7 +79,7 @@ public interface ElasticSearchConfiguration extends Configuration {
     int ELASTIC_SEARCH_TASK_LOG_RESULT_LIMIT_DEFAULT_VALUE = 10;
 
     String ELASTIC_SEARCH_REST_CLIENT_CONNECTION_REQUEST_TIMEOUT_PROPERTY_NAME = "workflow.elasticsearch.rest.client.connectionRequestTimeout.milliseconds";
-    int ELASTIC_SEARCH_REST_CLIENT_CONNECTION_REQUEST_TIMEOUT_DEFAULT_VALUE = -1;
+    int ELASTIC_SEARCH_REST_CLIENT_CONNECTION_REQUEST_TIMEOUT_DEFAULT_VALUE = 300000;
 
     String ELASTIC_SEARCH_BASIC_AUTH_USERNAME = "workflow.elasticsearch.basic.auth.username";
     String DEFAULT_ELASTIC_SEARCH_BASIC_AUTH_USERNAME = null;

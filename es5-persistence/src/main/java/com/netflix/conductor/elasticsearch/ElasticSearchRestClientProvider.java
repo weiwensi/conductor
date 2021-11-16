@@ -38,7 +38,7 @@ public class ElasticSearchRestClientProvider implements Provider<RestClient> {
     @Override
     public RestClient get() {
         RestClientBuilder restClientBuilder = RestClient.builder(convertToHttpHosts(configuration.getURIs()));
-
+        restClientBuilder.setMaxRetryTimeoutMillis(300000);
         if (configuration.getElasticsearchRestClientConnectionRequestTimeout() > 0) {
             restClientBuilder.setRequestConfigCallback(requestConfigBuilder -> requestConfigBuilder.setConnectionRequestTimeout(configuration.getElasticsearchRestClientConnectionRequestTimeout()));
         }

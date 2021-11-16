@@ -254,7 +254,6 @@ public class ElasticSearchRestDAOV5 implements IndexDAO {
         Map<String, String> params = new HashMap<>();
         params.put("wait_for_status", this.clusterHealthColor);
         params.put("timeout", "30s");
-
         elasticSearchAdminClient.performRequest("GET", "/_cluster/health", params);
     }
 
