@@ -26,7 +26,6 @@ import com.netflix.conductor.dao.ExecutionDAO;
 import com.netflix.conductor.dao.PollDataDAO;
 import com.netflix.conductor.dao.RateLimitingDAO;
 import com.netflix.conductor.metrics.Monitors;
-import com.netflix.conductor.util.JsonUtil;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -72,9 +71,9 @@ public class MySQLExecutionDAO extends MySQLBaseDAO implements ExecutionDAO, Rat
         String GET_IN_PROGRESS_TASKS_FOR_WORKFLOW = "SELECT json_data FROM task_in_progress tip "
                 + "INNER JOIN task t ON t.task_id = tip.task_id " + "WHERE task_def_name = ? AND workflow_id = ?";
         // @formatter:on
-        List<String> jsonStr = queryWithTransaction(GET_IN_PROGRESS_TASKS_FOR_WORKFLOW,
-                q -> q.addParameter(taskDefName).addParameter(workflowId).executeAndFetchForClob());
-        return JsonUtil.jsonStrToJavaBean(jsonStr,Task.class);
+
+        return queryWithTransaction(GET_IN_PROGRESS_TASKS_FOR_WORKFLOW,
+                q -> q.addParameter(taskDefName).addParameter(workflowId).executeAndFetch(Task.class));
     }
 
     @Override
@@ -219,8 +218,7 @@ public class MySQLExecutionDAO extends MySQLBaseDAO implements ExecutionDAO, Rat
     @Override
     public Task getTask(String taskId) {
         String GET_TASK = "SELECT json_data FROM task WHERE task_id = ?";
-        String s = queryWithTransaction(GET_TASK, q -> q.addParameter(taskId).executeAndFetchFirstForClob());
-        return  JsonUtil.jsonStrToJavaBean(s,Task.class);
+        return queryWithTransaction(GET_TASK, q -> q.addParameter(taskId).executeAndFetchFirst(Task.class));
     }
 
     @Override
@@ -238,9 +236,9 @@ public class MySQLExecutionDAO extends MySQLBaseDAO implements ExecutionDAO, Rat
         String GET_IN_PROGRESS_TASKS_FOR_TYPE = "SELECT json_data FROM task_in_progress tip "
                 + "INNER JOIN task t ON t.task_id = tip.task_id " + "WHERE task_def_name = ?";
         // @formatter:on
-        List<String> jsonStr = queryWithTransaction(GET_IN_PROGRESS_TASKS_FOR_TYPE,
-                q -> q.addParameter(taskName).executeAndFetchForClob());
-        return JsonUtil.jsonStrToJavaBean(jsonStr,Task.class);
+
+        return queryWithTransaction(GET_IN_PROGRESS_TASKS_FOR_TYPE,
+                q -> q.addParameter(taskName).executeAndFetch(Task.class));
     }
 
     @Override
@@ -317,7 +315,7 @@ public class MySQLExecutionDAO extends MySQLBaseDAO implements ExecutionDAO, Rat
 
     /**
      * @param workflowName name of the workflow
-     * @param version      the workflow version
+     * @param version the workflow version
      * @return list of workflow ids that are in RUNNING state
      * <em>returns workflows of all versions for the given workflow name</em>
      */
@@ -332,7 +330,7 @@ public class MySQLExecutionDAO extends MySQLBaseDAO implements ExecutionDAO, Rat
 
     /**
      * @param workflowName Name of the workflow
-     * @param version      the workflow version
+     * @param version the workflow version
      * @return list of workflows that are in RUNNING state
      */
     @Override
@@ -354,7 +352,7 @@ public class MySQLExecutionDAO extends MySQLBaseDAO implements ExecutionDAO, Rat
 
     @Override
     public long getInProgressTaskCount(String taskDefName) {
-        String GET_IN_PROGRESS_TASK_COUNT = "SELECT COUNT(*) FROM task_in_progress WHERE task_def_name = ? AND in_progress_status = 1";
+        String GET_IN_PROGRESS_TASK_COUNT = "SELECT COUNT(*) FROM task_in_progress WHERE task_def_name = ? AND in_progress_status = true";
 
         return queryWithTransaction(GET_IN_PROGRESS_TASK_COUNT, q -> q.addParameter(taskDefName).executeCount());
     }
@@ -481,13 +479,12 @@ public class MySQLExecutionDAO extends MySQLBaseDAO implements ExecutionDAO, Rat
 
     @Override
     public List<PollData> getAllPollData() {
-        try (Connection tx = dataSource.getConnection()) {
+        try(Connection tx = dataSource.getConnection()) {
             boolean previousAutoCommitMode = tx.getAutoCommit();
             tx.setAutoCommit(true);
             try {
                 String GET_ALL_POLL_DATA = "SELECT json_data FROM poll_data ORDER BY queue_name";
-                List<String> query = query(tx, GET_ALL_POLL_DATA, q -> q.executeAndFetchForClob());
-                return JsonUtil.jsonStrToJavaBean(query,PollData.class);
+                return query(tx, GET_ALL_POLL_DATA, q -> q.executeAndFetch(PollData.class));
             } catch (Throwable th) {
                 throw new ApplicationException(BACKEND_ERROR, th.getMessage(), th);
             } finally {
@@ -508,8 +505,8 @@ public class MySQLExecutionDAO extends MySQLBaseDAO implements ExecutionDAO, Rat
         final String GET_TASKS_FOR_IDS = String.format(
                 "SELECT json_data FROM task WHERE task_id IN (%s) AND json_data IS NOT NULL",
                 Query.generateInBindings(taskIds.size()));
-        List<String> query = query(connection, GET_TASKS_FOR_IDS, q -> q.addParameters(taskIds).executeAndFetchForClob());
-        return JsonUtil.jsonStrToJavaBean(query,Task.class);
+
+        return query(connection, GET_TASKS_FOR_IDS, q -> q.addParameters(taskIds).executeAndFetch(Task.class));
     }
 
     private String insertOrUpdateWorkflow(Workflow workflow, boolean update) {
@@ -543,15 +540,7 @@ public class MySQLExecutionDAO extends MySQLBaseDAO implements ExecutionDAO, Rat
         Optional<TaskDef> taskDefinition = task.getTaskDefinition();
 
         if (taskDefinition.isPresent() && taskDefinition.get().concurrencyLimit() > 0) {
-
-            Integer inProgress;
-            if (task.getStatus() != null && task.getStatus().equals(Task.Status.IN_PROGRESS)) {
-                inProgress = 1;
-            } else {
-                inProgress = 0;
-
-            }
-
+            boolean inProgress = task.getStatus() != null && task.getStatus().equals(Task.Status.IN_PROGRESS);
             updateInProgressStatus(connection, task, inProgress);
         }
 
@@ -566,8 +555,8 @@ public class MySQLExecutionDAO extends MySQLBaseDAO implements ExecutionDAO, Rat
 
     private Workflow readWorkflow(Connection connection, String workflowId) {
         String GET_WORKFLOW = "SELECT json_data FROM workflow WHERE workflow_id = ?";
-        String query = query(connection, GET_WORKFLOW, q -> q.addParameter(workflowId).executeAndFetchFirstForClob());
-        return JsonUtil.jsonStrToJavaBean(query,Workflow.class);
+
+        return query(connection, GET_WORKFLOW, q -> q.addParameter(workflowId).executeAndFetchFirst(Workflow.class));
     }
 
     private void addWorkflow(Connection connection, Workflow workflow) {
@@ -578,7 +567,7 @@ public class MySQLExecutionDAO extends MySQLBaseDAO implements ExecutionDAO, Rat
     }
 
     private void updateWorkflow(Connection connection, Workflow workflow) {
-        String UPDATE_WORKFLOW = "UPDATE workflow SET json_data = ?, modified_on = sysdate WHERE workflow_id = ?";
+        String UPDATE_WORKFLOW = "UPDATE workflow SET json_data = ?, modified_on = CURRENT_TIMESTAMP WHERE workflow_id = ?";
 
         execute(connection, UPDATE_WORKFLOW,
                 q -> q.addJsonParameter(workflow).addParameter(workflow.getWorkflowId()).executeUpdate());
@@ -591,12 +580,12 @@ public class MySQLExecutionDAO extends MySQLBaseDAO implements ExecutionDAO, Rat
 
     private void addPendingWorkflow(Connection connection, String workflowType, String workflowId) {
 
-        //String EXISTS_PENDING_WORKFLOW = "SELECT EXISTS(SELECT 1 FROM workflow_pending WHERE workflow_type = ? AND workflow_id = ?)";
-        String EXISTS_PENDING_WORKFLOW = "SELECT 1 FROM workflow_pending WHERE workflow_type = ? AND workflow_id = ?";
-        boolean exists = query(connection, EXISTS_PENDING_WORKFLOW, q -> q.addParameter(workflowType).addParameter(workflowId).executeAndFetchFirst(Integer.class))==1;
+        String EXISTS_PENDING_WORKFLOW = "SELECT EXISTS(SELECT 1 FROM workflow_pending WHERE workflow_type = ? AND workflow_id = ?)";
 
-        if (!exists) {
-            String INSERT_PENDING_WORKFLOW = "INSERT IGNORE INTO workflow_pending (workflow_type, workflow_id) VALUES (?, ?)";
+        boolean exists  = query(connection, EXISTS_PENDING_WORKFLOW, q -> q.addParameter(workflowType).addParameter(workflowId).exists());
+
+        if(!exists) {
+	        String INSERT_PENDING_WORKFLOW = "INSERT IGNORE INTO workflow_pending (workflow_type, workflow_id) VALUES (?, ?)";
 
             execute(connection, INSERT_PENDING_WORKFLOW,
                     q -> q.addParameter(workflowType).addParameter(workflowId).executeUpdate());
@@ -611,17 +600,17 @@ public class MySQLExecutionDAO extends MySQLBaseDAO implements ExecutionDAO, Rat
     }
 
     private void insertOrUpdateTaskData(Connection connection, Task task) {
-        /*
-         * Most times the row will be updated so let's try the update first. This used to be an 'INSERT/ON DUPLICATE KEY update' sql statement. The problem with that
-         * is that if we try the INSERT first, the sequence will be increased even if the ON DUPLICATE KEY happens.
-         */
-        String UPDATE_TASK = "UPDATE task SET json_data=?, modified_on=sysdate WHERE task_id=?";
-        int rowsUpdated = query(connection, UPDATE_TASK, q -> q.addJsonParameter(task).addParameter(task.getTaskId()).executeUpdate());
-
-        if (rowsUpdated == 0) {
-            String INSERT_TASK = "INSERT INTO task (task_id, json_data, modified_on) VALUES (?, ?, sysdate) ON DUPLICATE KEY UPDATE json_data=VALUES(json_data), modified_on=VALUES(modified_on)";
-            execute(connection, INSERT_TASK, q -> q.addParameter(task.getTaskId()).addJsonParameter(task).executeUpdate());
-        }
+		/*
+		 * Most times the row will be updated so let's try the update first. This used to be an 'INSERT/ON DUPLICATE KEY update' sql statement. The problem with that
+		 * is that if we try the INSERT first, the sequence will be increased even if the ON DUPLICATE KEY happens.
+		 */
+		String UPDATE_TASK = "UPDATE task SET json_data=?, modified_on=CURRENT_TIMESTAMP WHERE task_id=?";
+		int rowsUpdated = query(connection, UPDATE_TASK, q -> q.addJsonParameter(task).addParameter(task.getTaskId()).executeUpdate());
+		
+		if(rowsUpdated == 0) {
+	        String INSERT_TASK = "INSERT INTO task (task_id, json_data, modified_on) VALUES (?, ?, CURRENT_TIMESTAMP) ON DUPLICATE KEY UPDATE json_data=VALUES(json_data), modified_on=VALUES(modified_on)";
+	        execute(connection, INSERT_TASK, q -> q.addParameter(task.getTaskId()).addJsonParameter(task).executeUpdate());
+		}
     }
 
     private void removeTaskData(Connection connection, Task task) {
@@ -631,15 +620,15 @@ public class MySQLExecutionDAO extends MySQLBaseDAO implements ExecutionDAO, Rat
 
     private void addWorkflowToTaskMapping(Connection connection, Task task) {
 
-       // String EXISTS_WORKFLOW_TO_TASK = "SELECT EXISTS(SELECT 1 FROM workflow_to_task WHERE workflow_id = ? AND task_id = ?)";
-        String EXISTS_WORKFLOW_TO_TASK ="SELECT 1 FROM workflow_to_task WHERE workflow_id = ? AND task_id = ?";
-        boolean exists = query(connection, EXISTS_WORKFLOW_TO_TASK, q -> q.addParameter(task.getWorkflowInstanceId()).addParameter(task.getTaskId()).executeAndFetchFirst(Integer.class))==1;
+        String EXISTS_WORKFLOW_TO_TASK = "SELECT EXISTS(SELECT 1 FROM workflow_to_task WHERE workflow_id = ? AND task_id = ?)";
 
-        if (!exists) {
-            String INSERT_WORKFLOW_TO_TASK = "INSERT IGNORE INTO workflow_to_task (workflow_id, task_id) VALUES (?, ?)";
+        boolean exists  = query(connection, EXISTS_WORKFLOW_TO_TASK, q -> q.addParameter(task.getWorkflowInstanceId()).addParameter(task.getTaskId()).exists());
 
-            execute(connection, INSERT_WORKFLOW_TO_TASK,
-                    q -> q.addParameter(task.getWorkflowInstanceId()).addParameter(task.getTaskId()).executeUpdate());
+        if(!exists) {
+	        String INSERT_WORKFLOW_TO_TASK = "INSERT IGNORE INTO workflow_to_task (workflow_id, task_id) VALUES (?, ?)";
+	
+	        execute(connection, INSERT_WORKFLOW_TO_TASK,
+	                q -> q.addParameter(task.getWorkflowInstanceId()).addParameter(task.getTaskId()).executeUpdate());
         }
     }
 
@@ -669,20 +658,19 @@ public class MySQLExecutionDAO extends MySQLBaseDAO implements ExecutionDAO, Rat
     @VisibleForTesting
     boolean addScheduledTask(Connection connection, Task task, String taskKey) {
 
-       // final String EXISTS_SCHEDULED_TASK = "SELECT EXISTS(SELECT 1 FROM task_scheduled where workflow_id = ? AND task_key = ?)";
-        final String EXISTS_SCHEDULED_TASK = "SELECT 1 FROM task_scheduled where workflow_id = ? AND task_key = ?";
+        final String EXISTS_SCHEDULED_TASK = "SELECT EXISTS(SELECT 1 FROM task_scheduled where workflow_id = ? AND task_key = ?)";
 
         boolean exists = query(connection, EXISTS_SCHEDULED_TASK, q -> q.addParameter(task.getWorkflowInstanceId())
-                .addParameter(taskKey).executeAndFetchFirst(Integer.class))==1;
+                .addParameter(taskKey).exists());
 
-        if (!exists) {
+        if(!exists) {
             final String INSERT_IGNORE_SCHEDULED_TASK = "INSERT IGNORE INTO task_scheduled (workflow_id, task_key, task_id) VALUES (?, ?, ?)";
 
             int count = query(connection, INSERT_IGNORE_SCHEDULED_TASK, q -> q.addParameter(task.getWorkflowInstanceId())
                     .addParameter(taskKey).addParameter(task.getTaskId()).executeUpdate());
             return count > 0;
         } else {
-            return false;
+        	return false;
         }
 
     }
@@ -694,10 +682,10 @@ public class MySQLExecutionDAO extends MySQLBaseDAO implements ExecutionDAO, Rat
     }
 
     private void addTaskInProgress(Connection connection, Task task) {
-        //String EXISTS_IN_PROGRESS_TASK = "SELECT EXISTS(SELECT 1 FROM task_in_progress WHERE task_def_name = ? AND task_id = ?)";
-       String EXISTS_IN_PROGRESS_TASK = "SELECT 1 FROM task_in_progress WHERE task_def_name = ? AND task_id = ?";
+        String EXISTS_IN_PROGRESS_TASK = "SELECT EXISTS(SELECT 1 FROM task_in_progress WHERE task_def_name = ? AND task_id = ?)";
+
         boolean exists = query(connection, EXISTS_IN_PROGRESS_TASK,
-                q -> q.addParameter(task.getTaskDefName()).addParameter(task.getTaskId()).executeAndFetchFirst(Integer.class))==1;
+                q -> q.addParameter(task.getTaskDefName()).addParameter(task.getTaskId()).exists());
 
         if (!exists) {
             String INSERT_IN_PROGRESS_TASK = "INSERT INTO task_in_progress (task_def_name, task_id, workflow_id) VALUES (?, ?, ?)";
@@ -714,8 +702,8 @@ public class MySQLExecutionDAO extends MySQLBaseDAO implements ExecutionDAO, Rat
                 q -> q.addParameter(task.getTaskDefName()).addParameter(task.getTaskId()).executeUpdate());
     }
 
-    private void updateInProgressStatus(Connection connection, Task task, Integer inProgress) {
-        String UPDATE_IN_PROGRESS_TASK_STATUS = "UPDATE task_in_progress SET in_progress_status = ?, modified_on = sysdate "
+    private void updateInProgressStatus(Connection connection, Task task, boolean inProgress) {
+        String UPDATE_IN_PROGRESS_TASK_STATUS = "UPDATE task_in_progress SET in_progress_status = ?, modified_on = CURRENT_TIMESTAMP "
                 + "WHERE task_def_name = ? AND task_id = ?";
 
         execute(connection, UPDATE_IN_PROGRESS_TASK_STATUS, q -> q.addParameter(inProgress)
@@ -736,7 +724,7 @@ public class MySQLExecutionDAO extends MySQLBaseDAO implements ExecutionDAO, Rat
     private void updateEventExecution(Connection connection, EventExecution eventExecution) {
         // @formatter:off
         String UPDATE_EVENT_EXECUTION = "UPDATE event_execution SET " + "json_data = ?, "
-                + "modified_on = sysdate " + "WHERE event_handler_name = ? " + "AND event_name = ? "
+                + "modified_on = CURRENT_TIMESTAMP " + "WHERE event_handler_name = ? " + "AND event_name = ? "
                 + "AND message_id = ? " + "AND execution_id = ?";
         // @formatter:on
 
@@ -762,39 +750,36 @@ public class MySQLExecutionDAO extends MySQLBaseDAO implements ExecutionDAO, Rat
         String GET_EVENT_EXECUTION = "SELECT json_data FROM event_execution " + "WHERE event_handler_name = ? "
                 + "AND event_name = ? " + "AND message_id = ? " + "AND execution_id = ?";
         // @formatter:on
-        String query = query(connection, GET_EVENT_EXECUTION, q -> q.addParameter(eventHandlerName).addParameter(eventName)
-                .addParameter(messageId).addParameter(executionId).executeAndFetchFirstForClob());
-        return JsonUtil.jsonStrToJavaBean(query,EventExecution.class);
+        return query(connection, GET_EVENT_EXECUTION, q -> q.addParameter(eventHandlerName).addParameter(eventName)
+                .addParameter(messageId).addParameter(executionId).executeAndFetchFirst(EventExecution.class));
     }
 
     private void insertOrUpdatePollData(Connection connection, PollData pollData, String domain) {
 
-        /*
-         * Most times the row will be updated so let's try the update first. This used to be an 'INSERT/ON DUPLICATE KEY update' sql statement. The problem with that
-         * is that if we try the INSERT first, the sequence will be increased even if the ON DUPLICATE KEY happens. Since polling happens *a lot*, the sequence can increase
-         * dramatically even though it won't be used.
-         */
+    	/*
+    	 * Most times the row will be updated so let's try the update first. This used to be an 'INSERT/ON DUPLICATE KEY update' sql statement. The problem with that
+    	 * is that if we try the INSERT first, the sequence will be increased even if the ON DUPLICATE KEY happens. Since polling happens *a lot*, the sequence can increase 
+    	 * dramatically even though it won't be used.
+    	 */
         String UPDATE_POLL_DATA = "UPDATE poll_data SET json_data=?, modified_on=CURRENT_TIMESTAMP WHERE queue_name=? AND domain=?";
         int rowsUpdated = query(connection, UPDATE_POLL_DATA, q -> q.addJsonParameter(pollData).addParameter(pollData.getQueueName()).addParameter(domain).executeUpdate());
-
-        if (rowsUpdated == 0) {
-            String INSERT_POLL_DATA = "INSERT INTO poll_data (queue_name, domain, json_data, modified_on) VALUES (?, ?, ?, CURRENT_TIMESTAMP) ON DUPLICATE KEY UPDATE json_data=VALUES(json_data), modified_on=VALUES(modified_on)";
-            execute(connection, INSERT_POLL_DATA, q -> q.addParameter(pollData.getQueueName()).addParameter(domain)
-                    .addJsonParameter(pollData).executeUpdate());
+        
+       if(rowsUpdated == 0) {
+           String INSERT_POLL_DATA = "INSERT INTO poll_data (queue_name, domain, json_data, modified_on) VALUES (?, ?, ?, CURRENT_TIMESTAMP) ON DUPLICATE KEY UPDATE json_data=VALUES(json_data), modified_on=VALUES(modified_on)";
+           execute(connection, INSERT_POLL_DATA, q -> q.addParameter(pollData.getQueueName()).addParameter(domain)
+                  .addJsonParameter(pollData).executeUpdate());
         }
     }
 
     private PollData readPollData(Connection connection, String queueName, String domain) {
         String GET_POLL_DATA = "SELECT json_data FROM poll_data WHERE queue_name = ? AND domain = ?";
-        String query = query(connection, GET_POLL_DATA,
-                q -> q.addParameter(queueName).addParameter(domain).executeAndFetchFirstForClob());
-        return JsonUtil.jsonStrToJavaBean(query,PollData.class);
+        return query(connection, GET_POLL_DATA,
+                q -> q.addParameter(queueName).addParameter(domain).executeAndFetchFirst(PollData.class));
     }
 
     private List<PollData> readAllPollData(String queueName) {
         String GET_ALL_POLL_DATA = "SELECT json_data FROM poll_data WHERE queue_name = ?";
-        List<String> jsons = queryWithTransaction(GET_ALL_POLL_DATA, q -> q.addParameter(queueName).executeAndFetchForClob());
-        return JsonUtil.jsonStrToJavaBean(jsons,PollData.class);
+        return queryWithTransaction(GET_ALL_POLL_DATA, q -> q.addParameter(queueName).executeAndFetch(PollData.class));
     }
 
     private List<String> findAllTasksInProgressInOrderOfArrival(Task task, int limit) {

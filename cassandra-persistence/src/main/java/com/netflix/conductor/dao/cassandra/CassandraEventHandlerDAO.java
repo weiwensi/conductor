@@ -104,11 +104,11 @@ public class CassandraEventHandlerDAO extends CassandraBaseDAO implements EventH
     }
 
     @Override
-    public List<EventHandler> getEventHandlersForEvent(String event, Integer activeOnly) {
-        if (activeOnly==1) {
+    public List<EventHandler> getEventHandlersForEvent(String event, Boolean activeOnly) {
+        if (activeOnly) {
             return getAllEventHandlers().stream()
                 .filter(eventHandler -> eventHandler.getEvent().equals(event))
-                .filter(eventHandler->eventHandler.isActive()==1)
+                .filter(eventHandler->eventHandler.isActive())
                 .collect(Collectors.toList());
         } else {
             return getAllEventHandlers().stream()

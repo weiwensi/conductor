@@ -56,7 +56,7 @@ public class RedisEventHandlerDAOTest {
 
         EventHandler eventHandler = new EventHandler();
         eventHandler.setName(UUID.randomUUID().toString());
-        eventHandler.setActive(0);
+        eventHandler.setActive(false);
         Action action = new Action();
         action.setAction(Type.start_workflow);
         action.setStart_workflow(new StartWorkflow());
@@ -71,11 +71,11 @@ public class RedisEventHandlerDAOTest {
         assertEquals(eventHandler.getName(), allEventHandlers.get(0).getName());
         assertEquals(eventHandler.getEvent(), allEventHandlers.get(0).getEvent());
 
-        List<EventHandler> byEvents = redisEventHandlerDAO.getEventHandlersForEvent(event1, 1);
+        List<EventHandler> byEvents = redisEventHandlerDAO.getEventHandlersForEvent(event1, true);
         assertNotNull(byEvents);
         assertEquals(0, byEvents.size());        //event is marked as in-active
 
-        eventHandler.setActive(1);
+        eventHandler.setActive(true);
         eventHandler.setEvent(event2);
         redisEventHandlerDAO.updateEventHandler(eventHandler);
 
@@ -83,11 +83,11 @@ public class RedisEventHandlerDAOTest {
         assertNotNull(allEventHandlers);
         assertEquals(1, allEventHandlers.size());
 
-        byEvents = redisEventHandlerDAO.getEventHandlersForEvent(event1, 1);
+        byEvents = redisEventHandlerDAO.getEventHandlersForEvent(event1, true);
         assertNotNull(byEvents);
         assertEquals(0, byEvents.size());
 
-        byEvents = redisEventHandlerDAO.getEventHandlersForEvent(event2, 1);
+        byEvents = redisEventHandlerDAO.getEventHandlersForEvent(event2, true);
         assertNotNull(byEvents);
         assertEquals(1, byEvents.size());
     }

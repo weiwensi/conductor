@@ -493,19 +493,19 @@ public class CassandraDAOTest {
         eventHandlerDAO.addEventHandler(eventHandler);
 
         // fetch all event handlers for event
-        List<EventHandler> handlers = eventHandlerDAO.getEventHandlersForEvent(event, 0);
+        List<EventHandler> handlers = eventHandlerDAO.getEventHandlersForEvent(event, false);
         assertNotNull(handlers);
         assertEquals(1, handlers.size());
         assertEquals(eventHandler.getName(), handlers.get(0).getName());
         assertEquals(eventHandler.getEvent(), handlers.get(0).getEvent());
-        assertTrue(handlers.get(0).isActive()==0);
+        assertTrue(handlers.get(0).isActive()==false);
         //assertFalse(handlers.get(0).isActive());
 
         // add an active event handler for the same event
         EventHandler eventHandler1 = new EventHandler();
         eventHandler1.setName(eventHandlerName2);
         eventHandler1.setEvent(event);
-        eventHandler1.setActive(1);
+        eventHandler1.setActive(true);
         eventHandlerDAO.addEventHandler(eventHandler1);
 
         // fetch all event handlers
@@ -514,17 +514,17 @@ public class CassandraDAOTest {
         assertEquals(2, handlers.size());
 
         // fetch all event handlers for event
-        handlers = eventHandlerDAO.getEventHandlersForEvent(event, 0);
+        handlers = eventHandlerDAO.getEventHandlersForEvent(event, false);
         assertNotNull(handlers);
         assertEquals(2, handlers.size());
 
         // fetch only active handlers for event
-        handlers = eventHandlerDAO.getEventHandlersForEvent(event, 1);
+        handlers = eventHandlerDAO.getEventHandlersForEvent(event, true);
         assertNotNull(handlers);
         assertEquals(1, handlers.size());
         assertEquals(eventHandler1.getName(), handlers.get(0).getName());
         assertEquals(eventHandler1.getEvent(), handlers.get(0).getEvent());
-        assertTrue(handlers.get(0).isActive()==1);
+        assertTrue(handlers.get(0).isActive()==true);
 
         // remove event handler
         eventHandlerDAO.removeEventHandler(eventHandlerName1);

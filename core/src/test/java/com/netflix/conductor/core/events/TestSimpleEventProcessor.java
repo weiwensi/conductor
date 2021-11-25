@@ -115,7 +115,7 @@ public class TestSimpleEventProcessor {
         // setup event handler
         EventHandler eventHandler = new EventHandler();
         eventHandler.setName(UUID.randomUUID().toString());
-        eventHandler.setActive(1);
+        eventHandler.setActive(true);
 
         Map<String, String> taskToDomain = new HashMap<>();
         taskToDomain.put("*", "dev");
@@ -139,7 +139,7 @@ public class TestSimpleEventProcessor {
         eventHandler.setEvent(event);
 
         when(metadataService.getAllEventHandlers()).thenReturn(Collections.singletonList(eventHandler));
-        when(metadataService.getEventHandlersForEvent(event, 1)).thenReturn(Collections.singletonList(eventHandler));
+        when(metadataService.getEventHandlersForEvent(event, true)).thenReturn(Collections.singletonList(eventHandler));
         when(executionService.addEventExecution(any())).thenReturn(true);
         when(queue.rePublishIfNoAck()).thenReturn(false);
 
@@ -191,7 +191,7 @@ public class TestSimpleEventProcessor {
     public void testEventHandlerWithCondition() {
         EventHandler eventHandler = new EventHandler();
         eventHandler.setName("cms_intermediate_video_ingest_handler");
-        eventHandler.setActive(1);
+        eventHandler.setActive(true);
         eventHandler.setEvent("sqs:dev_cms_asset_ingest_queue");
         eventHandler.setCondition("$.Message.testKey1 == 'level1' && $.Message.metadata.testKey2 == 123456");
 
@@ -211,7 +211,7 @@ public class TestSimpleEventProcessor {
         eventHandler.setEvent(event);
 
         when(metadataService.getAllEventHandlers()).thenReturn(Collections.singletonList(eventHandler));
-        when(metadataService.getEventHandlersForEvent(event, 1)).thenReturn(Collections.singletonList(eventHandler));
+        when(metadataService.getEventHandlersForEvent(event, true)).thenReturn(Collections.singletonList(eventHandler));
         when(executionService.addEventExecution(any())).thenReturn(true);
         when(queue.rePublishIfNoAck()).thenReturn(false);
 
@@ -240,7 +240,7 @@ public class TestSimpleEventProcessor {
     public void testEventProcessorWithRetriableError() {
         EventHandler eventHandler = new EventHandler();
         eventHandler.setName(UUID.randomUUID().toString());
-        eventHandler.setActive(1);
+        eventHandler.setActive(true);
         eventHandler.setEvent(event);
 
         Action completeTaskAction = new Action();
@@ -253,7 +253,7 @@ public class TestSimpleEventProcessor {
 
         when(queue.rePublishIfNoAck()).thenReturn(false);
         when(metadataService.getAllEventHandlers()).thenReturn(Collections.singletonList(eventHandler));
-        when(metadataService.getEventHandlersForEvent(event, 1)).thenReturn(Collections.singletonList(eventHandler));
+        when(metadataService.getEventHandlersForEvent(event, true)).thenReturn(Collections.singletonList(eventHandler));
         when(executionService.addEventExecution(any())).thenReturn(true);
         when(actionProcessor.execute(any(), any(), any(), any())).thenThrow(new ApplicationException(ApplicationException.Code.BACKEND_ERROR, "some retriable error"));
 
@@ -271,7 +271,7 @@ public class TestSimpleEventProcessor {
     public void testEventProcessorWithNonRetriableError() {
         EventHandler eventHandler = new EventHandler();
         eventHandler.setName(UUID.randomUUID().toString());
-        eventHandler.setActive(1);
+        eventHandler.setActive(true);
         eventHandler.setEvent(event);
 
         Action completeTaskAction = new Action();
@@ -283,7 +283,7 @@ public class TestSimpleEventProcessor {
         eventHandler.getActions().add(completeTaskAction);
 
         when(metadataService.getAllEventHandlers()).thenReturn(Collections.singletonList(eventHandler));
-        when(metadataService.getEventHandlersForEvent(event, 1)).thenReturn(Collections.singletonList(eventHandler));
+        when(metadataService.getEventHandlersForEvent(event, true)).thenReturn(Collections.singletonList(eventHandler));
         when(executionService.addEventExecution(any())).thenReturn(true);
 
         when(actionProcessor.execute(any(), any(), any(), any())).thenThrow(new ApplicationException(ApplicationException.Code.INVALID_INPUT, "some non-retriable error"));

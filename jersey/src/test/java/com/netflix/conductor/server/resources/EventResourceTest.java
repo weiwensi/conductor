@@ -57,8 +57,8 @@ public class EventResourceTest {
         eventResource.addEventHandler(eventHandler);
         List<EventHandler> listOfEventHandler = new ArrayList<>();
         listOfEventHandler.add(eventHandler);
-        when(mockEventService.getEventHandlersForEvent(anyString(), anyInt())).thenReturn(listOfEventHandler);
-        assertEquals(listOfEventHandler, eventResource.getEventHandlersForEvent("testEvent", 1));
+        when(mockEventService.getEventHandlersForEvent(anyString(), anyBoolean())).thenReturn(listOfEventHandler);
+        assertEquals(listOfEventHandler, eventResource.getEventHandlersForEvent("testEvent", true));
     }
 
     @Test

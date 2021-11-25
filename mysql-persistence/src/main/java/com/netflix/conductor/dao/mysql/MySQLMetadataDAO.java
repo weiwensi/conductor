@@ -16,22 +16,15 @@
 package com.netflix.conductor.dao.mysql;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.netflix.conductor.common.metadata.events.EventHandler;
 import com.netflix.conductor.common.metadata.tasks.TaskDef;
 import com.netflix.conductor.common.metadata.workflow.WorkflowDef;
-import com.netflix.conductor.util.JsonUtil;
 import com.netflix.conductor.core.config.Configuration;
 import com.netflix.conductor.core.execution.ApplicationException;
 import com.netflix.conductor.dao.EventHandlerDAO;
 import com.netflix.conductor.dao.MetadataDAO;
 import com.netflix.conductor.metrics.Monitors;
-import oracle.sql.CLOB;
-
-import java.io.BufferedReader;
-import java.io.Reader;
-import java.sql.Clob;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -129,21 +122,20 @@ public class MySQLMetadataDAO extends MySQLBaseDAO implements MetadataDAO, Event
     public Optional<WorkflowDef> getLatestWorkflowDef(String name) {
         final String GET_LATEST_WORKFLOW_DEF_QUERY = "SELECT json_data FROM meta_workflow_def WHERE NAME = ? AND " +
                 "version = latest_version";
-        String json = queryWithTransaction(GET_LATEST_WORKFLOW_DEF_QUERY,
-                q -> q.addParameter(name).executeAndFetchFirstForClob());
+
         return Optional.ofNullable(
-                JsonUtil.jsonStrToJavaBean(json,WorkflowDef.class)
+                queryWithTransaction(GET_LATEST_WORKFLOW_DEF_QUERY,
+                        q -> q.addParameter(name).executeAndFetchFirst(WorkflowDef.class))
         );
     }
 
     @Override
     public Optional<WorkflowDef> getWorkflowDef(String name, int version) {
         final String GET_WORKFLOW_DEF_QUERY = "SELECT json_data FROM meta_workflow_def WHERE NAME = ? AND version = ?";
-        String json = queryWithTransaction(GET_WORKFLOW_DEF_QUERY, q -> q.addParameter(name)
-                .addParameter(version)
-                .executeAndFetchFirstForClob());
         return Optional.ofNullable(
-                JsonUtil.jsonStrToJavaBean(json,WorkflowDef.class)
+                queryWithTransaction(GET_WORKFLOW_DEF_QUERY, q -> q.addParameter(name)
+                        .addParameter(version)
+                        .executeAndFetchFirst(WorkflowDef.class))
         );
     }
 
@@ -174,23 +166,23 @@ public class MySQLMetadataDAO extends MySQLBaseDAO implements MetadataDAO, Event
     @Override
     public List<WorkflowDef> getAllWorkflowDefs() {
         final String GET_ALL_WORKFLOW_DEF_QUERY = "SELECT json_data FROM meta_workflow_def ORDER BY name, version";
-        List<String> jsons = queryWithTransaction(GET_ALL_WORKFLOW_DEF_QUERY, q -> q.executeAndFetchForClob());
-        return   JsonUtil.jsonStrToJavaBean(jsons,WorkflowDef.class);
+
+        return queryWithTransaction(GET_ALL_WORKFLOW_DEF_QUERY, q -> q.executeAndFetch(WorkflowDef.class));
     }
 
     public List<WorkflowDef> getAllLatest() {
         final String GET_ALL_LATEST_WORKFLOW_DEF_QUERY = "SELECT json_data FROM meta_workflow_def WHERE version = " +
                 "latest_version";
-        List<String> jsons = queryWithTransaction(GET_ALL_LATEST_WORKFLOW_DEF_QUERY, q -> q.executeAndFetchForClob());
-        return JsonUtil.jsonStrToJavaBean(jsons,WorkflowDef.class);
+
+        return queryWithTransaction(GET_ALL_LATEST_WORKFLOW_DEF_QUERY, q -> q.executeAndFetch(WorkflowDef.class));
     }
 
     public List<WorkflowDef> getAllVersions(String name) {
         final String GET_ALL_VERSIONS_WORKFLOW_DEF_QUERY = "SELECT json_data FROM meta_workflow_def WHERE name = ? " +
                 "ORDER BY version";
-        List<String> jsons = queryWithTransaction(GET_ALL_VERSIONS_WORKFLOW_DEF_QUERY,
-                q -> q.addParameter(name).executeAndFetchForClob());
-        return JsonUtil.jsonStrToJavaBean(jsons,WorkflowDef.class);
+
+        return queryWithTransaction(GET_ALL_VERSIONS_WORKFLOW_DEF_QUERY,
+                q -> q.addParameter(name).executeAndFetch(WorkflowDef.class));
     }
 
     @Override
@@ -256,24 +248,20 @@ public class MySQLMetadataDAO extends MySQLBaseDAO implements MetadataDAO, Event
 
     @Override
     public List<EventHandler> getAllEventHandlers() {
-       final String READ_ALL_EVENT_HANDLER_QUERY = "SELECT json_data FROM meta_event_handler";
-        List<String> jsons = queryWithTransaction(READ_ALL_EVENT_HANDLER_QUERY, q -> q.executeAndFetchForClob());
-        return JsonUtil.jsonStrToJavaBean(jsons,EventHandler.class);
+        final String READ_ALL_EVENT_HANDLER_QUERY = "SELECT json_data FROM meta_event_handler";
+        return queryWithTransaction(READ_ALL_EVENT_HANDLER_QUERY, q -> q.executeAndFetch(EventHandler.class));
     }
 
     @Override
-    public List<EventHandler> getEventHandlersForEvent(String event, Integer activeOnly) {
+    public List<EventHandler> getEventHandlersForEvent(String event, Boolean activeOnly) {
         final String READ_ALL_EVENT_HANDLER_BY_EVENT_QUERY = "SELECT json_data FROM meta_event_handler WHERE event = ?";
-       return queryWithTransaction(READ_ALL_EVENT_HANDLER_BY_EVENT_QUERY, q -> {
+        return queryWithTransaction(READ_ALL_EVENT_HANDLER_BY_EVENT_QUERY, q -> {
             q.addParameter(event);
-
             return q.executeAndFetch(rs -> {
                 List<EventHandler> handlers = new ArrayList<>();
                 while (rs.next()) {
-                    Clob clob = rs.getClob(1);
-
-                    EventHandler h = JsonUtil.jsonStrToJavaBean(ClobToString(clob), EventHandler.class);
-                    if (activeOnly==0 || h.isActive()==1) {
+                    EventHandler h = readValue(rs.getString(1), EventHandler.class);
+                    if (!activeOnly || h.isActive()) {
                         handlers.add(h);
                     }
                 }
@@ -282,24 +270,7 @@ public class MySQLMetadataDAO extends MySQLBaseDAO implements MetadataDAO, Event
             });
         });
     }
-    private String ClobToString(Clob clob)  {
-        String reString = "";
-        try {
-            Reader is = clob.getCharacterStream();// 得到流
-            BufferedReader br = new BufferedReader(is);
-            String s = br.readLine();
-            StringBuffer sb = new StringBuffer();
-            while (s != null) {// 执行循环将字符串全部取出付值给StringBuffer由StringBuffer转成STRING
-                sb.append(s);
-                s = br.readLine();
-            }
-            reString = sb.toString();
-        }catch (Exception e){
-            throw new RuntimeException("clob to String Exception");
-        }
 
-        return reString;
-    }
     /**
      * Use {@link Preconditions} to check for required {@link TaskDef} fields, throwing a Runtime exception if
      * validations fail.
@@ -331,9 +302,9 @@ public class MySQLMetadataDAO extends MySQLBaseDAO implements MetadataDAO, Event
      */
     private EventHandler getEventHandler(Connection connection, String name) {
         final String READ_ONE_EVENT_HANDLER_QUERY = "SELECT json_data FROM meta_event_handler WHERE name = ?";
-        String json = query(connection, READ_ONE_EVENT_HANDLER_QUERY,
-                q -> q.addParameter(name).executeAndFetchFirstForClob());
-        return JsonUtil.jsonStrToJavaBean(json,EventHandler.class);
+
+        return query(connection, READ_ONE_EVENT_HANDLER_QUERY,
+                q -> q.addParameter(name).executeAndFetchFirst(EventHandler.class));
     }
 
     /**
@@ -449,13 +420,13 @@ public class MySQLMetadataDAO extends MySQLBaseDAO implements MetadataDAO, Event
     /**
      * Query persistence for all defined {@link TaskDef} data.
      *
-     * @param tx The {@link Connection} to use for queries.2
+     * @param tx The {@link Connection} to use for queries.
      * @return A new {@code List<TaskDef>} with all the {@code TaskDef} data that was retrieved.
      */
     private List<TaskDef> findAllTaskDefs(Connection tx) {
         final String READ_ALL_TASKDEF_QUERY = "SELECT json_data FROM meta_task_def";
-        List<String> query = query(tx, READ_ALL_TASKDEF_QUERY, q -> q.executeAndFetchForClob());
-        return JsonUtil.jsonStrToJavaBean(query, TaskDef.class);
+
+        return query(tx, READ_ALL_TASKDEF_QUERY, q -> q.executeAndFetch(TaskDef.class));
     }
 
     /**
@@ -466,9 +437,9 @@ public class MySQLMetadataDAO extends MySQLBaseDAO implements MetadataDAO, Event
      */
     private TaskDef getTaskDefFromDB(String name) {
         final String READ_ONE_TASKDEF_QUERY = "SELECT json_data FROM meta_task_def WHERE name = ?";
-        String json = queryWithTransaction(READ_ONE_TASKDEF_QUERY,
-                q -> q.addParameter(name).executeAndFetchFirstForClob());
-        return JsonUtil.jsonStrToJavaBean(json,TaskDef.class);
+
+        return queryWithTransaction(READ_ONE_TASKDEF_QUERY,
+                q -> q.addParameter(name).executeAndFetchFirst(TaskDef.class));
     }
 
     private String insertOrUpdateTaskDef(TaskDef taskDef) {

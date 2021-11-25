@@ -3269,7 +3269,7 @@ public final class EventServicePb {
      * <code>bool active_only = 2;</code>
      * @return
      */
-    Integer getActiveOnly();
+    Boolean getActiveOnly();
   }
   /**
    * Protobuf type {@code conductor.grpc.events.GetEventHandlersForEventRequest}
@@ -3285,7 +3285,7 @@ public final class EventServicePb {
     }
     private GetEventHandlersForEventRequest() {
       event_ = "";
-      activeOnly_ = 0;
+      activeOnly_ = false;
     }
 
     @java.lang.Override
@@ -3327,7 +3327,7 @@ public final class EventServicePb {
             }
             case 16: {
 
-              activeOnly_ = input.readInt32();
+              activeOnly_ = input.readBool();
               break;
             }
           }
@@ -3389,12 +3389,12 @@ public final class EventServicePb {
     }
 
     public static final int ACTIVE_ONLY_FIELD_NUMBER = 2;
-    private Integer activeOnly_;
+    private Boolean activeOnly_;
     /**
      * <code>bool active_only = 2;</code>
      * @return
      */
-    public Integer getActiveOnly() {
+    public Boolean getActiveOnly() {
       return activeOnly_;
     }
 
@@ -3413,8 +3413,8 @@ public final class EventServicePb {
       if (!getEventBytes().isEmpty()) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 1, event_);
       }
-      if (activeOnly_ != 0) {
-        output.writeInt32(2, activeOnly_);
+      if (activeOnly_ ) {
+        output.writeBool(2, activeOnly_);
       }
       unknownFields.writeTo(output);
     }
@@ -3427,9 +3427,9 @@ public final class EventServicePb {
       if (!getEventBytes().isEmpty()) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, event_);
       }
-      if (activeOnly_ != 0) {
+      if (activeOnly_ ) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(2, activeOnly_);
+          .computeBoolSize(2, activeOnly_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -3465,7 +3465,7 @@ public final class EventServicePb {
       hash = (37 * hash) + EVENT_FIELD_NUMBER;
       hash = (53 * hash) + getEvent().hashCode();
       hash = (37 * hash) + ACTIVE_ONLY_FIELD_NUMBER;
-      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
           getActiveOnly());
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
@@ -3598,7 +3598,7 @@ public final class EventServicePb {
         super.clear();
         event_ = "";
 
-        activeOnly_ = 0;
+        activeOnly_ = false;
 
         return this;
       }
@@ -3669,7 +3669,7 @@ public final class EventServicePb {
           event_ = other.event_;
           onChanged();
         }
-        if (other.getActiveOnly() != 0) {
+        if (other.getActiveOnly() != false) {
           setActiveOnly(other.getActiveOnly());
         }
         this.mergeUnknownFields(other.unknownFields);
@@ -3768,18 +3768,18 @@ public final class EventServicePb {
         return this;
       }
 
-      private Integer activeOnly_ ;
+      private Boolean activeOnly_ ;
       /**
        * <code>bool active_only = 2;</code>
        * @return
        */
-      public Integer getActiveOnly() {
+      public Boolean getActiveOnly() {
         return activeOnly_;
       }
       /**
        * <code>bool active_only = 2;</code>
        */
-      public Builder setActiveOnly(Integer value) {
+      public Builder setActiveOnly(Boolean value) {
         
         activeOnly_ = value;
         onChanged();
@@ -3790,7 +3790,7 @@ public final class EventServicePb {
        */
       public Builder clearActiveOnly() {
         
-        activeOnly_ = 0;
+        activeOnly_ = false;
         onChanged();
         return this;
       }

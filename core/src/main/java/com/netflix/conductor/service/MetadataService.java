@@ -120,5 +120,5 @@ public interface MetadataService {
      * @param activeOnly if true, returns only the active handlers
      * @return Returns the list of all the event handlers for a given event
      */
-    List<EventHandler> getEventHandlersForEvent(@NotEmpty(message = "EventName cannot be null or empty") String event, Integer activeOnly);
+    List<EventHandler> getEventHandlersForEvent(@NotEmpty(message = "EventName cannot be null or empty") String event, Boolean activeOnly);
 }

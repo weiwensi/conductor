@@ -26,18 +26,18 @@ public class MySQLDAOTestUtil {
 
     MySQLDAOTestUtil(String dbName) throws Exception {
         //String normalizedDbName = dbName.toLowerCase();
-        testConfiguration.setProperty("jdbc.url", "jdbc:oracle:thin:@1.117.203.84:1521:helowin");
-        testConfiguration.setProperty("jdbc.username", "system");
-        testConfiguration.setProperty("jdbc.password", "system");
+        testConfiguration.setProperty("jdbc.url", "jdbc:mysql://localhost:33307/" + dbName +"?useSSL=false&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC");
+        testConfiguration.setProperty("jdbc.username", "root");
+        testConfiguration.setProperty("jdbc.password", "root");
         createDatabase(dbName);
         this.dataSource = getDataSource(testConfiguration);
     }
 
     private void createDatabase(String dbName) {
         HikariDataSource dataSource = new HikariDataSource();
-        dataSource.setJdbcUrl("jdbc:oracle:thin:@1.117.203.84:1521:helowin");
-        dataSource.setUsername("system");
-        dataSource.setPassword("system");
+        dataSource.setJdbcUrl("jdbc:mysql://localhost:33307/conductor");
+        dataSource.setUsername("root");
+        dataSource.setPassword("root");
         dataSource.setAutoCommit(false);
 
         dataSource.setMaximumPoolSize(2);
@@ -57,9 +57,9 @@ public class MySQLDAOTestUtil {
     private HikariDataSource getDataSource(Configuration config) {
 
         HikariDataSource dataSource = new HikariDataSource();
-        dataSource.setJdbcUrl(config.getProperty("jdbc.url", "jdbc:oracle:thin:@1.117.203.84:1521:helowin"));
-        dataSource.setUsername(config.getProperty("jdbc.username", "system"));
-        dataSource.setPassword(config.getProperty("jdbc.password", "system"));
+        dataSource.setJdbcUrl(config.getProperty("jdbc.url", "jdbc:mysql://localhost:33307/conductor"));
+        dataSource.setUsername(config.getProperty("jdbc.username", "conductor"));
+        dataSource.setPassword(config.getProperty("jdbc.password", "password"));
         dataSource.setAutoCommit(false);
 
         // Prevent DB from getting exhausted during rapid testing

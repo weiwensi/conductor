@@ -87,7 +87,7 @@ public class EventResource {
 	@Path("/{event}")
 	@ApiOperation("Get event handlers for a given event")
 	public List<EventHandler> getEventHandlersForEvent(@PathParam("event") String event,
-                                                       @QueryParam("activeOnly") @DefaultValue("1") Integer activeOnly) {
+                                                       @QueryParam("activeOnly") @DefaultValue("1") Boolean activeOnly) {
         return eventService.getEventHandlersForEvent(event, activeOnly);
 	}
 	

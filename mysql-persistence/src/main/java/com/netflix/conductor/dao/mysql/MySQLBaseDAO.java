@@ -18,12 +18,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 import javax.sql.DataSource;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-//import static com.mysql.cj.exceptions.MysqlErrorNumbers.ER_LOCK_DEADLOCK;
+import static com.mysql.cj.exceptions.MysqlErrorNumbers.ER_LOCK_DEADLOCK;
 import static com.netflix.conductor.core.execution.ApplicationException.Code.BACKEND_ERROR;
 import static com.netflix.conductor.core.execution.ApplicationException.Code.CONFLICT;
 import static com.netflix.conductor.core.execution.ApplicationException.Code.INTERNAL_ERROR;
@@ -155,7 +154,7 @@ public abstract class MySQLBaseDAO {
                 return result;
             } catch (Throwable th) {
                 tx.rollback();
-                logger.error(CONFLICT + " " +th.getMessage());
+                logger.info(CONFLICT + " " +th.getMessage());
                 return null;
             } finally {
                 tx.setAutoCommit(previousAutoCommitMode);
@@ -195,7 +194,6 @@ public abstract class MySQLBaseDAO {
      * @return The results of applying {@literal function}.
      */
     protected <R> R queryWithTransaction(String query, QueryFunction<R> function) {
-      //  System.out.println(query+"param:"+function.apply());
         return getWithRetriedTransactions(tx -> query(tx, query, function));
     }
 
@@ -209,7 +207,6 @@ public abstract class MySQLBaseDAO {
      * @return The results of applying {@literal function}.
      */
     protected <R> R query(Connection tx, String query, QueryFunction<R> function) {
-       // logger.info("SQL:------>>>"+query);
         try (Query q = new Query(objectMapper, tx, query)) {
             return function.apply(q);
         } catch (SQLException ex) {
@@ -239,17 +236,15 @@ public abstract class MySQLBaseDAO {
      * @param function The functional callback to pass a {@link Query} to.
      */
     protected void executeWithTransaction(String query, ExecuteFunction function) {
-        System.out.println(query);
         withTransaction(tx -> execute(tx, query, function));
     }
-    private int ORACLE_DEAD_CODE=04020;
 
     private boolean isDeadLockError(Throwable throwable){
         SQLException sqlException = findCauseSQLException(throwable);
         if (sqlException == null){
             return false;
         }
-        return ORACLE_DEAD_CODE == sqlException.getErrorCode();
+        return ER_LOCK_DEADLOCK == sqlException.getErrorCode();
     }
 
     private SQLException findCauseSQLException(Throwable throwable) {
