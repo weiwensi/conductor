@@ -39,3 +39,4 @@ bin/
 *.log.gz
 out/
 MANIFEST.MF
+/ui/

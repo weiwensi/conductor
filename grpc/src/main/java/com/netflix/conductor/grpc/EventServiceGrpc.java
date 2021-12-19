@@ -26,7 +26,7 @@ public final class EventServiceGrpc {
 
   public static final String SERVICE_NAME = "conductor.grpc.events.EventService";
 
-  // Static method descriptors that strictly reflect the proto.
+  // Static method descriptos that strictly reflect the proto.
   private static volatile io.grpc.MethodDescriptor<com.netflix.conductor.grpc.EventServicePb.AddEventHandlerRequest,
       com.netflix.conductor.grpc.EventServicePb.AddEventHandlerResponse> getAddEventHandlerMethod;
 
